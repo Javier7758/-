@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 跨年旅行 | 旅程管理 (景點管理)</title>
+    <title>2026 跨年旅行 | 本地儲存版 (極簡)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        /* 導航列被選中時的樣式 */
         .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
+        .fa-solid { margin-right: 5px; } 
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -18,9 +20,9 @@
         
         <header class="bg-slate-900 text-white p-6 rounded-b-3xl shadow-lg">
             <h1 class="text-2xl font-bold italic">跨年旅行 <span class="text-orange-500">2026</span></h1>
-            <p class="text-sm opacity-75">12/25 - 01/04 | ➔ 香港</p>
+            <p class="text-sm opacity-75">數據已儲存於您的裝置，無需登入</p>
         </header>
-
+        
         <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
             <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
             <button @click="currentTab = 'landmarks'" :class="{'tab-active': currentTab === 'landmarks'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-camera block text-lg mb-1"></i>景點</button>
@@ -36,105 +38,166 @@
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
-                
-                <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
-                    <h3 class="font-bold text-orange-600 mb-3">新增行程</h3>
-                    <input v-model="newScheduleItem.date" placeholder="日期 (e.g., 12/26)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                    <input v-model="newScheduleItem.tag" placeholder="標籤 (e.g., 購物, 午餐) (選填)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                    <textarea v-model="newScheduleItem.desc" placeholder="行程描述..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
-                    <button @click="addScheduleItem" :disabled="!newScheduleItem.date || !newScheduleItem.desc" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                        新增日程 <i class="fa-solid fa-calendar-plus ml-1"></i>
-                    </button>
-                </div>
-
                 <div v-for="day in schedule" :key="day.id" class="border-l-4 border-orange-500 pl-4 py-2 relative bg-white rounded-r-xl p-3 shadow-md hover:shadow-lg transition">
-                    
-                    <div v-if="!day.isEditing">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-slate-900">{{ day.date }}</span>
-                            <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ day.tag }}</span>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-3">{{ day.desc }}</p>
-                        <div class="flex justify-end gap-3 pt-1 border-t border-slate-100 mt-2">
-                            <button @click="toggleEdit(day)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
-                            <button @click="deleteScheduleItem(day.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
-                        </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-900">{{ day.date }}</span>
+                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ day.tag }}</span>
                     </div>
-
-                    <div v-else>
-                         <h4 class="font-bold text-sm mb-2 text-orange-600">編輯行程</h4>
-                         <input v-model="day.date" placeholder="日期 (e.g., 12/26)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                         <input v-model="day.tag" placeholder="標籤" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                         <textarea v-model="day.desc" placeholder="行程描述..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
-                         <button @click="toggleEdit(day)" class="w-full bg-green-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
-                         </button>
-                    </div>
+                    <p class="text-sm text-slate-600">{{ day.desc }}</p>
                 </div>
             </section>
 
             <section v-if="currentTab === 'landmarks'" class="space-y-4">
-                
-                <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
-                    <h3 class="font-bold text-orange-600 mb-3">新增景點</h3>
-                    <input v-model="newLandmarkItem.name" placeholder="景點名稱 (e.g., 太平山頂)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                    <input v-model="newLandmarkItem.type" placeholder="景點類型 (e.g., 自然景觀)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                    <textarea v-model="newLandmarkItem.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
-                    <button @click="addLandmarkItem" :disabled="!newLandmarkItem.name" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                        新增景點 <i class="fa-solid fa-plus ml-1"></i>
-                    </button>
-                </div>
-
                 <div v-for="item in landmarks" :key="item.id" class="p-4 border rounded-2xl flex flex-col bg-white shadow-sm hover:shadow-md transition">
-                    
-                    <div v-if="!item.isEditing">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-slate-900">{{ item.name }}</h3>
-                                <p class="text-xs text-orange-600">{{ item.type }}</p>
-                            </div>
-                            <a :href="'http://googleusercontent.com/maps.google.com/search?q=' + item.name + '+香港'" target="_blank" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full hover:bg-slate-200">導航 <i class="fa-solid fa-location-arrow ml-1"></i></a>
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-bold text-slate-900">{{ item.name }}</h3>
+                            <p class="text-xs text-orange-600">{{ item.type }}</p>
                         </div>
-                        <p class="text-sm text-slate-600 mb-3">{{ item.desc }}</p>
-                        <div class="flex justify-end gap-3 pt-1 border-t border-slate-100 mt-2">
-                            <button @click="toggleLandmarkEdit(item)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
-                            <button @click="deleteLandmarkItem(item.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
-                        </div>
+                        <a :href="'http://googleusercontent.com/maps.google.com/search?q=' + item.name + '+香港'" target="_blank" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full hover:bg-slate-200">導航 <i class="fa-solid fa-location-arrow ml-1"></i></a>
                     </div>
-
-                    <div v-else>
-                         <h4 class="font-bold text-sm mb-2 text-orange-600">編輯景點</h4>
-                         <input v-model="item.name" placeholder="景點名稱" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                         <input v-model="item.type" placeholder="景點類型" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                         <textarea v-model="item.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
-                         <button @click="toggleLandmarkEdit(item)" class="w-full bg-green-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
-                         </button>
-                    </div>
+                    <p class="text-sm text-slate-600 mb-3">{{ item.desc }}</p>
                 </div>
             </section>
 
             <section v-if="currentTab === 'finance'">
-                <div class="bg-slate-900 text-white p-4 rounded-2xl mb-4 flex justify-between">
-                    <div><p class="text-xs opacity-70">總支出 (HKD)</p><p class="text-2xl font-bold">${{ totalExpense }}</p></div>
-                    <i class="fa-solid fa-chart-pie text-orange-500 text-3xl opacity-50"></i>
-                </div>
-                <div class="space-y-2 mb-6">
-                    <input v-model="newExpense.item" placeholder="品項" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                    <div class="flex gap-2">
-                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                        <select v-model="newExpense.method" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                            <option value="現金">💵 現金</option>
-                            <option value="信用卡">💳 信用卡</option>
-                            <option value="八達通">🚌 八達通</option>
-                            <option value="電子支付">📱 電子支付</option>
+                
+                <div class="bg-slate-200 p-4 rounded-2xl mb-4 shadow-inner">
+                    <h3 class="font-bold text-slate-800 mb-2 flex justify-between items-center">
+                        匯率計算機 (TWD) <i class="fa-solid fa-calculator"></i>
+                    </h3>
+                    <div class="flex gap-2 mb-3">
+                        <input v-model.number="calculator.amount" type="number" placeholder="輸入金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        <select v-model="calculator.currency" class="p-3 border rounded-xl text-sm bg-white">
+                            <option value="HKD">HKD (港幣 1:4)</option>
+                            <option value="RMB">RMB (人民幣 1:4.4)</option>
                         </select>
                     </div>
-                    <button @click="addExpense" class="w-full bg-orange-500 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
+                    <p v-if="calculator.amount > 0" class="text-center text-lg font-bold text-orange-700">
+                        = ${{ calculatedTWD.toFixed(2) }} TWD
+                    </p>
+                    <p v-else class="text-center text-sm text-slate-500">
+                        請輸入金額以開始計算
+                    </p>
                 </div>
-                <div v-for="(exp, index) in expenses" :key="index" class="flex justify-between p-3 border-b text-sm">
-                    <span>{{ exp.item }} <small class="text-slate-400">({{ exp.method }})</small></span>
-                    <span class="font-medium text-red-500">-${{ exp.amount }}</span>
+                <div @click="openStatsModal" class="bg-slate-900 text-white p-4 rounded-2xl mb-4 shadow-lg cursor-pointer transition duration-150 hover:bg-slate-800">
+                    <p class="text-xs opacity-70 flex justify-between items-center">
+                        總支出 (TWD)
+                        <i class="fa-solid fa-chart-pie text-base"></i>
+                    </p>
+                    <p class="text-2xl font-bold">TWD ${{ totalExpenseTWD.toFixed(0) }}</p>
+                </div>
+
+                <div class="space-y-2 mb-6 p-4 border border-dashed rounded-xl bg-orange-50">
+                    <h4 class="font-bold text-slate-800 mb-2">新增支出項目</h4>
+                    
+                    <div class="w-full">
+                        <div v-if="newExpense.category === '交通' && newExpense.item !== '其他交通'">
+                            <select v-model="newExpense.item" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                                <option value="">請選擇交通方式 (非必填)</option>
+                                <option value="巴士"><i class="fa-solid fa-bus"></i> 巴士</option>
+                                <option value="地鐵"><i class="fa-solid fa-train-subway"></i> 地鐵</option>
+                                <option value="的士"><i class="fa-solid fa-taxi"></i> 的士</option>
+                                <option value="其他交通"><i class="fa-solid fa-road"></i> 其他</option>
+                            </select>
+                        </div>
+                        <div v-else-if="newExpense.category === '交通' && newExpense.item === '其他交通'">
+                             <input v-model="newExpense.item" placeholder="請輸入交通簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div v-else>
+                            <input v-model="newExpense.item" placeholder="簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                         <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                            <option value="吃"><i class="fa-solid fa-utensils"></i> 吃</option>
+                            <option value="交通"><i class="fa-solid fa-bus"></i> 交通</option>
+                            <option value="購物"><i class="fa-solid fa-bag-shopping"></i> 購物</option>
+                            <option value="門票"><i class="fa-solid fa-ticket"></i> 門票</option>
+                            <option value="其他"><i class="fa-solid fa-ellipsis-h"></i> 其他</option>
+                        </select>
+                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        <select v-model="newExpense.currency" class="w-20 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                            <option value="HKD">HKD</option>
+                            <option value="RMB">RMB</option>
+                            <option value="TWD">TWD</option>
+                        </select>
+                    </div>
+
+                    <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                        <option value="現金"><i class="fa-solid fa-money-bill-wave"></i> 現金</option>
+                        <option value="信用卡"><i class="fa-solid fa-credit-card"></i> 信用卡</option>
+                        <option value="八達通"><i class="fa-solid fa-train"></i> 八達通</option>
+                        <option value="電子支付"><i class="fa-solid fa-qrcode"></i> 電子支付</option>
+                        <option value="其他"><i class="fa-solid fa-ellipsis-h"></i> 其他</option>
+                    </select>
+                    <button @click="addExpense" :disabled="!newExpense.amount" class="w-full bg-orange-500 disabled:opacity-50 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
+                </div>
+
+                <div v-for="(exp, index) in expenses" :key="exp.id" class="p-3 border-b border-slate-200 hover:bg-slate-50 transition duration-100">
+                    <div v-if="!exp.isEditing" class="flex justify-between items-start text-sm">
+                        <div class="flex-1">
+                            <span class="font-bold text-slate-800">{{ exp.item }}</span>
+                            <small class="text-slate-400 block">{{ getCategoryLabel(exp.category) }} ({{ exp.method }})</small>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-medium text-red-500 text-base block">- {{ exp.currency }} {{ exp.amount }}</span>
+                            <span v-if="exp.currency !== 'TWD'" class="text-xs text-slate-500">
+                                (約 TWD {{ convertToTWD(exp.amount, exp.currency).toFixed(0) }})
+                            </span>
+                            <div class="flex justify-end gap-3 pt-1 mt-1">
+                                <button @click="toggleEdit(exp)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
+                                <button @click="deleteExpense(exp.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="p-2 bg-white rounded-lg border border-blue-300">
+                         <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
+                         
+                         <div v-if="exp.category === '交通' && exp.item === '其他交通'">
+                            <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                         </div>
+                         <div v-else-if="exp.category === '交通'">
+                            <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                                <option value="巴士">巴士</option>
+                                <option value="地鐵">地鐵</option>
+                                <option value="的士">的士</option>
+                                <option value="其他交通">其他</option>
+                            </select>
+                         </div>
+                         <div v-else>
+                            <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                         </div>
+
+                         <div class="flex gap-2 mb-2">
+                            <select v-model="exp.category" class="flex-1 p-2 border rounded-lg text-sm bg-white">
+                                <option value="吃">吃</option>
+                                <option value="交通">交通</option>
+                                <option value="購物">購物</option>
+                                <option value="門票">門票</option>
+                                <option value="其他">其他</option>
+                            </select>
+                            <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
+                             <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
+                                <option value="HKD">HKD</option>
+                                <option value="RMB">RMB</option>
+                                <option value="TWD">TWD</option>
+                            </select>
+                         </div>
+                         <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
+                            <option value="現金">現金</option>
+                            <option value="信用卡">信用卡</option>
+                            <option value="八達通">八達通</option>
+                            <option value="電子支付">電子支付</option>
+                            <option value="其他">其他</option>
+                         </select>
+
+                         <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
+                         </button>
+                    </div>
                 </div>
             </section>
 
@@ -150,7 +213,7 @@
                     <select v-model="newWishItem.member" class="p-3 border rounded-xl text-sm bg-white font-medium">
                         <option v-for="member in members" :key="member + '_add'" :value="member">{{ member }}</option>
                     </select>
-                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-lg text-sm focus:ring-orange-500 focus:border-orange-500">
                     <button @click="addWishItem" class="bg-slate-900 text-white px-4 rounded-xl active:scale-95 transition"><i class="fa-solid fa-plus"></i></button>
                 </div>
 
@@ -161,6 +224,10 @@
                             <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.item }}</span>
                         </div>
                         <span v-if="selectedMember === '全部'" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ item.member }}</span>
+                        
+                        <button @click="deleteWishItem(item.id)" class="ml-3 text-red-500 hover:text-red-700">
+                            <i class="fa-solid fa-times text-xs"></i>
+                        </button>
                     </div>
                 </div>
                 <div v-else class="text-center text-slate-500 p-8 border border-dashed rounded-xl">
@@ -170,20 +237,64 @@
             </section>
 
         </main>
+        
+        <div class="bg-red-600 text-white p-3 shadow-xl absolute bottom-0 w-full">
+            <p class="font-bold text-lg mb-1 flex items-center">
+                <i class="fa-solid fa-triangle-exclamation mr-2 text-yellow-300"></i> 緊急求助電話
+            </p>
+            <div class="flex justify-around text-sm font-medium">
+                <a href="tel:999" class="text-center hover:bg-red-700 p-1 rounded-md transition duration-150">
+                    🇭🇰 香港：<span class="font-black text-xl">999</span>
+                </a>
+                <a href="tel:110" class="text-center hover:bg-red-700 p-1 rounded-md transition duration-150">
+                    🇨🇳 中國：<span class="font-black text-xl">110 / 120 / 119</span>
+                </a>
+            </div>
+        </div>
+        <div v-if="isStatsModalOpen" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">支出分析 (TWD)</h3>
+                    <button @click="isStatsModalOpen = false" class="text-gray-500 hover:text-gray-800">
+                        <i class="fa-solid fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="w-full h-64 flex justify-center">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+
+                    <h4 class="font-bold text-sm text-orange-600 mt-4">總支出 TWD ${{ totalExpenseTWD.toFixed(0) }}</h4>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div v-for="(amount, category) in categoryTotals" :key="category" class="flex justify-between border-b pb-1">
+                            <span>{{ category }}</span>
+                            <span class="font-medium text-slate-700">TWD {{ amount.toFixed(0) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 <script>
-    const { createApp, ref, computed, watch } = Vue;
+    const { createApp, ref, computed, watch, nextTick } = Vue;
 
     // --- Local Storage 助手函式：讀取與儲存通用邏輯 ---
 
-    // 通用讀取函式
     function loadData(key, defaultData = []) {
         try {
             const stored = localStorage.getItem(key);
-            // 由於行程和景點需要 isEditing 屬性，確保舊資料有這個屬性
             const data = stored ? JSON.parse(stored) : defaultData;
-            if (key === 'hk_trip_schedule' || key === 'hk_trip_landmarks') {
-                return data.map(item => ({ ...item, isEditing: false }));
+            
+            if (key === 'hk_trip_expenses') {
+                return data.map(item => ({ 
+                    id: item.id || Date.now() + Math.random(), 
+                    category: item.category || '其他', 
+                    isEditing: item.isEditing || false, 
+                    item: item.item || '', 
+                    ...item 
+                }));
             }
             return data;
         } catch (e) {
@@ -192,144 +303,240 @@
         }
     }
 
-    // 通用儲存函式
     function saveData(key, list) {
-        localStorage.setItem(key, JSON.stringify(list));
+        const cleanedList = list.map(({ isEditing, ...rest }) => rest);
+        localStorage.setItem(key, JSON.stringify(cleanedList));
     }
+
+
+    // -------------------------------------------------------
+    // Vue App 啟動前的數據處理 
+    // -------------------------------------------------------
+
+    // 🚩 數據修改區：行程與景點 🚩
+    const FIXED_SCHEDULE = [
+        { id: 1, date: '12/25', tag: '啟程', desc: '抵港、check-in 香港家、旺角晚餐' },
+        { id: 2, date: '12/26', tag: '市區', desc: '中環大館、石板街、山頂纜車' },
+        { id: 3, date: '12/27', tag: '郊遊', desc: '大嶼山天壇大佛、大澳漁村' },
+        { id: 4, date: '01/01', tag: '匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁' },
+        { id: 5, date: '01/02', tag: '團體', desc: '香港迪士尼樂園全日遊' },
+        { id: 6, date: '01/04', tag: '回程', desc: '送機、自由活動' }
+    ];
+    
+    const FIXED_LANDMARKS = [
+        { id: 1, name: '香港國際機場', type: '交通樞紐', desc: '作為入境和出境點' },
+        { id: 2, name: '香港迪士尼樂園', type: '遊樂景點', desc: '注意開園時間，提前訂票' },
+        { id: 3, name: '中環大館', type: '文化藝術', desc: '中環區的歷史建築群，拍照很好看' },
+        { id: 4, name: '太平山頂', type: '自然景觀', desc: '夜景最佳觀賞點，排隊時間長' }
+    ];
+    
+    const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
+    
+    const defaultExpenses = []; 
+    const defaultWishlist = [{ id: 1, member: '橞宜', item: '小熊維尼公仔', done: false }];
+
+    const initialExpenses = loadData('hk_trip_expenses', defaultExpenses);
+    const initialWishlist = loadData('hk_trip_wishlist', defaultWishlist);
+
+    let nextExpenseId = (initialExpenses.length > 0 ? Math.max(...initialExpenses.map(e => e.id)) : 0) + 1;
+    let nextWishId = (initialWishlist.length > 0 ? Math.max(...initialWishlist.map(w => w.id)) : 0) + 1;
+
+    // 🚩 核心匯率常量 🚩
+    const RMB_RATE = 4.4; 
+    const HKD_RATE = 4.0;
+    
+    // 定義圖表顏色 (Chart.js 顏色配置)
+    const CHART_COLORS = [
+        '#FF6384', 
+        '#36A2EB', 
+        '#FFCD56', 
+        '#4BC0C0', 
+        '#9966FF', 
+        '#FF9F40'
+    ];
+    
+    let expenseChartInstance = null;
+
 
     createApp({
         setup() {
             const currentTab = ref('itinerary'); 
+            const isStatsModalOpen = ref(false); 
             
-            // --- 1. 行程管理邏輯 (CRUD & 持久化) ---
-            
-            const defaultSchedule = [
-                 { id: 1, date: '12/25', tag: '兩人啟程', desc: '抵港、check-in 香港家、旺角晚餐', isEditing: false },
-                 { id: 2, date: '01/01', tag: '家族匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁', isEditing: false },
-                 { id: 3, date: '01/04', tag: '家族回程', desc: '送機、自由活動、晚上考慮 Long Stay', isEditing: false }
-            ];
-
-            const initialSchedule = loadData('hk_trip_schedule', defaultSchedule);
-            
-            let nextScheduleId = initialSchedule.length > 0 
-                                 ? Math.max(...initialSchedule.map(s => s.id)) + 1 
-                                 : 4; 
-
-            const schedule = ref(initialSchedule);
-
-            watch(schedule, (newList) => {
-                saveData('hk_trip_schedule', newList);
-            }, { deep: true });
-
-            const newScheduleItem = ref({ date: '', tag: '', desc: '' });
-
-            function addScheduleItem() {
-                if (newScheduleItem.value.date && newScheduleItem.value.desc) {
-                    schedule.value.push({
-                        id: nextScheduleId++,
-                        date: newScheduleItem.value.date,
-                        tag: newScheduleItem.value.tag || '行程',
-                        desc: newScheduleItem.value.desc,
-                        isEditing: false
-                    });
-                    newScheduleItem.value = { date: '', tag: '', desc: '' };
-                }
-            }
-
-            function toggleEdit(item) {
-                item.isEditing = !item.isEditing;
-            }
-
-            function deleteScheduleItem(id) {
-                schedule.value = schedule.value.filter(item => item.id !== id);
-            }
-
-            // --- 2. 景點管理邏輯 (CRUD & 持久化) ---
-            
-            const defaultLandmarks = [
-                { id: 1, name: '香港國際機場', type: '交通樞紐', desc: '抵港地點', isEditing: false },
-                { id: 2, name: '香港迪士尼樂園', type: '遊樂景點', desc: '預計 1/2 帶家人去', isEditing: false },
-                { id: 3, name: '中環大館', type: '文化藝術', desc: '中環區的歷史建築群', isEditing: false }
-            ];
-
-            const initialLandmarks = loadData('hk_trip_landmarks', defaultLandmarks);
-            
-            let nextLandmarkId = initialLandmarks.length > 0
-                                 ? Math.max(...initialLandmarks.map(l => l.id)) + 1
-                                 : 4;
-
-            const landmarks = ref(initialLandmarks);
-
-            watch(landmarks, (newList) => {
-                saveData('hk_trip_landmarks', newList);
-            }, { deep: true });
-
-            const newLandmarkItem = ref({ name: '', type: '', desc: '' });
-
-            function addLandmarkItem() {
-                if (newLandmarkItem.value.name) {
-                    landmarks.value.push({
-                        id: nextLandmarkId++,
-                        name: newLandmarkItem.value.name,
-                        type: newLandmarkItem.value.type || '景點',
-                        desc: newLandmarkItem.value.desc || '',
-                        isEditing: false
-                    });
-                    newLandmarkItem.value = { name: '', type: '', desc: '' };
-                }
-            }
-
-            function toggleLandmarkEdit(item) {
-                item.isEditing = !item.isEditing;
-            }
-
-            function deleteLandmarkItem(id) {
-                landmarks.value = landmarks.value.filter(item => item.id !== id);
-            }
-            
-            // --- 3. 記帳邏輯 (持久化) ---
-            
-            const initialExpenses = loadData('hk_trip_expenses');
+            // --- 數據結構 (Ref) ---
+            const schedule = ref(FIXED_SCHEDULE);
+            const landmarks = ref(FIXED_LANDMARKS);
             const expenses = ref(initialExpenses);
-
-            watch(expenses, (newList) => {
-                saveData('hk_trip_expenses', newList);
-            }, { deep: true });
-
-            const newExpense = ref({ item: '', amount: null, method: '現金' });
-            const totalExpense = computed(() => expenses.value.reduce((sum, exp) => sum + exp.amount, 0));
-            
-            function addExpense() {
-                if (newExpense.value.item && newExpense.value.amount) {
-                    expenses.value.unshift({ ...newExpense.value });
-                    newExpense.value = { item: '', amount: null, method: '現金' };
-                }
-            }
-
-            // --- 4. 願望清單邏輯 (持久化) ---
-
-            const members = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
+            const newExpense = ref({ 
+                item: '', amount: null, currency: 'HKD', method: '現金', category: '吃' 
+            });
+            const members = FIXED_MEMBERS;
+            const wishlist = ref(initialWishlist);
             const selectedMember = ref('全部'); 
             const newWishItem = ref({ member: '橞宜', item: '' }); 
+            const calculator = ref({ amount: null, currency: 'HKD' });
+
+
+            // =======================================================
+            // 🚩 核心邏輯區 🚩
+            // =======================================================
             
-            const initialWishlist = loadData('hk_trip_wishlist');
-            let nextWishId = initialWishlist.length > 0 
-                                ? Math.max(...initialWishlist.map(w => w.id)) + 1 
-                                : 1;
+            // 💰 匯率轉換函式 (從任何幣別轉 TWD)
+            function convertToTWD(amount, currency) {
+                amount = Number(amount) || 0;
+                switch (currency) {
+                    case 'RMB': return amount * RMB_RATE; 
+                    case 'HKD': return amount * HKD_RATE; 
+                    case 'TWD': return amount; 
+                    default: return 0;
+                }
+            }
+            
+            // 輔助函式：根據 category 代碼獲取易讀標籤
+            function getCategoryLabel(category) {
+                if (!category) return '💡 其他'; 
+                
+                switch (category) {
+                    case '吃': return '🍽️ 吃';
+                    case '交通': return '🚌 交通';
+                    case '購物': return '🛍️ 購物';
+                    case '門票': return '🎟️ 門票';
+                    default: return '💡 其他';
+                }
+            }
 
-            const wishlist = ref(initialWishlist);
 
-            watch(wishlist, (newList) => {
-                saveData('hk_trip_wishlist', newList);
-            }, { deep: true });
+            // 💰 匯率計算屬性 (給上方計算機使用)
+            const calculatedTWD = computed(() => {
+                return convertToTWD(calculator.value.amount, calculator.value.currency);
+            });
+            
 
+            // --- 記帳 CRUD ---
+            
+            // 🎯 計算各分類總支出 (Computed Property)
+            const categoryTotals = computed(() => {
+                const totals = { '吃': 0, '交通': 0, '購物': 0, '門票': 0, '其他': 0 };
+                
+                expenses.value.forEach(exp => {
+                    const twdAmount = convertToTWD(exp.amount, exp.currency);
+                    const mainCategoryKey = exp.category || '其他'; 
+                    
+                    if (totals.hasOwnProperty(mainCategoryKey)) {
+                        totals[mainCategoryKey] += twdAmount;
+                    } else {
+                        totals['其他'] += twdAmount;
+                    }
+                });
+                return totals;
+            });
+
+            // 計算總支出 (Computed Property) - TWD 總額
+            const totalExpenseTWD = computed(() => {
+                return expenses.value.reduce((total, exp) => {
+                    return total + convertToTWD(exp.amount, exp.currency);
+                }, 0);
+            });
+            
+            // 新增支出函式
+            function addExpense() {
+                // 僅檢查金額是否填寫
+                if (newExpense.value.amount) {
+                    expenses.value.unshift({ 
+                        ...newExpense.value, 
+                        id: nextExpenseId++,
+                        isEditing: false,
+                        // 處理簡述：如果 item 為空字串，將其替換為類別名稱
+                        item: newExpense.value.item || newExpense.value.category
+                    });
+                    
+                    // 重設表單
+                    newExpense.value = { item: '', amount: null, currency: 'HKD', method: '現金', category: '吃' };
+                }
+            }
+
+            // 編輯/儲存切換函式
+            function toggleEdit(item) { 
+                item.isEditing = !item.isEditing; 
+                // 如果是儲存動作，確保 item 不為空 (給予類別名稱作為預設值)
+                if (!item.isEditing && !item.item) {
+                     item.item = item.category;
+                }
+            }
+
+            // 刪除支出函式
+            function deleteExpense(id) {
+                expenses.value = expenses.value.filter(exp => exp.id !== id);
+            }
+
+            // 🌟 圓餅圖繪製邏輯 🌟
+            function renderChart() {
+                if (expenseChartInstance) {
+                    expenseChartInstance.destroy(); 
+                }
+
+                const ctx = document.getElementById('expenseChart').getContext('2d');
+                const totals = categoryTotals.value;
+                
+                const labels = Object.keys(totals).filter(key => totals[key] > 0);
+                const data = labels.map(key => totals[key]);
+
+                expenseChartInstance = new Chart(ctx, {
+                    type: 'doughnut', 
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: CHART_COLORS.slice(0, labels.length),
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: TWD ${value.toFixed(0)} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 🌟 打開統計彈窗並繪製圖表 🌟
+            function openStatsModal() {
+                isStatsModalOpen.value = true;
+                nextTick(() => {
+                    renderChart();
+                });
+            }
+            
+            // 🌟 監聽新支出類別切換，清空簡述以避免殘留
+            watch(() => newExpense.value.category, (newCategory) => {
+                newExpense.value.item = ''; 
+            });
+
+
+            // --- 願望清單 CRUD (保持不變) ---
+            
             const filteredWishlist = computed(() => {
                 if (selectedMember.value === '全部') {
                     return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
                 }
                 return wishlist.value.filter(item => item.member === selectedMember.value);
             });
-
+            
             function addWishItem() {
                 if (newWishItem.value.item && newWishItem.value.member) {
                     wishlist.value.push({ 
@@ -342,18 +549,33 @@
                     selectedMember.value = newWishItem.value.member;
                 }
             }
+            
+            function deleteWishItem(id) {
+                wishlist.value = wishlist.value.filter(item => item.id !== id);
+            }
+            
+            // =======================================================
+            // 🚩 數據變動監聽器：自動儲存到 Local Storage 🚩
+            // =======================================================
+
+            const watchOptions = { deep: true };
+            watch(expenses, (newList) => saveData('hk_trip_expenses', newList), watchOptions);
+            watch(wishlist, (newList) => saveData('hk_trip_wishlist', newList), watchOptions);
 
 
             return { 
                 currentTab, 
-                // 行程
-                schedule, newScheduleItem, addScheduleItem, toggleEdit, deleteScheduleItem,
-                // 景點
-                landmarks, newLandmarkItem, addLandmarkItem, toggleLandmarkEdit, deleteLandmarkItem,
+                isStatsModalOpen, 
+                openStatsModal, 
+                // 行程 & 景點 (只讀 - 來自 FIXED_*)
+                schedule, 
+                landmarks,
                 // 記帳
-                expenses, newExpense, totalExpense, addExpense, 
+                expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD,
+                // 匯率計算
+                calculator, calculatedTWD,
                 // 願望清單
-                members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem
+                members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem, deleteWishItem
             };
         }
     }).mount('#app');
