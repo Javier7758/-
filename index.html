@@ -51,44 +51,68 @@
             <section v-if="currentTab === 'essentials'" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-900 border-b pb-2">「行前須知」：重要資訊 💡</h2>
                 
-                <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
-                    <h3 class="font-bold text-blue-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
-                    <div class="space-y-1 text-sm text-slate-700">
-                        <p><span class="font-semibold text-slate-900">去程時間 (IT232):</span> 2026/12/25 09:00 - 10:45</p>
-                        <p><span class="font-semibold text-slate-900">回程時間 (IT233):</span> 2027/01/04 19:30 - 21:15</p>
-                        <p><span class="font-semibold text-slate-900">去程編號:</span> IT232 (虎航)</p>
-                        <p><span class="font-semibold text-slate-900">回程編號:</span> IT233 (虎航)</p>
-                    </div>
-                </div>
+               <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
+    <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
+    <div class="space-y-2 text-sm">
+        <a href="https://booking.evaair.com/flyeva/eva/b2c/manage-your-trip/online-checked-in-login.aspx" target="_blank" class="font-bold text-blue-700 hover:text-blue-500 hover:underline transition duration-150 block">
+            按此於起飛前48至1小時辦理網上報到
+        </a>
+        <hr class="border-green-300">
+        <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50)</p>
+        <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20)</p>
+    </div>
+</div>
 
-                <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
-                    <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿地址</h3>
-                    <p class="text-sm font-medium text-slate-900 mb-2">香港家 (Hong Kong Home)</p>
-                    <p class="text-sm text-slate-700">九龍旺角彌敦道777號</p>
-                    <a href="http://googleusercontent.com/maps.google.com/search?q=九龍旺角彌敦道777號" target="_blank" class="text-xs text-green-600 font-semibold hover:underline mt-2 inline-block">在 Google 地圖上查看 <i class="fa-solid fa-location-dot ml-1"></i></a>
-                </div>
+                <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
+    <h3 class="font-bold text-blue-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿地址</h3>
+
+    <div class="mb-4 pb-3 border-b border-blue-200">
+        <p class="font-bold text-base text-slate-900 mb-1">🇨🇳 深圳</p>
+        
+        <a href="https://tw.trip.com/hotels/shenzhen-hotel-detail-41520773/bangtuo-meinuo-executive-apartment/" target="_blank" class="font-bold text-orange-600 hover:text-orange-500 hover:underline transition duration-150 text-base block">
+            邦拓美諾行政公寓（深圳前海廣場店）
+        </a>
+        
+        <p class="text-xs text-slate-600 mt-1">
+            南山區, 月亮灣大道1104號佳兆業前海廣場二期B座5樓506室
+        </p>
+    
+    </div>
+
+    <div>
+        <p class="font-bold text-base text-slate-900 mb-1">🇭🇰 香港</p>
+        
+        <a href="https://tw.trip.com/hotels/hong-kong-hotel-detail-7114825/camlux-hotel/" target="_blank" class="font-bold text-orange-600 hover:text-orange-500 hover:underline transition duration-150 text-base block">
+            香港君立飯店
+        </a>
+        
+        <p class="text-xs text-slate-600 mt-1">
+            觀塘區, 九龍灣宏光道15號
+        </p>
+        <a href="https://www.google.com/maps/place/%E5%90%9B%E7%AB%8B%E9%85%92%E5%BA%97/@22.3237639,114.2034422,17z/data=!3m1!4b1!4m9!3m8!1s0x34040132e4727759:0xaefe60d32380705b!5m2!4m1!1i2!8m2!3d22.3237639!4d114.2060171!16s%2Fg%2F11c5s98sdf?entry=ttu&g_ep=EgoyMDI1MTIwMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">在 Google 地圖上查看 <i class="fa-solid fa-location-dot ml-1"></i></a>
+    </div>
+</div>
 
                 <div class="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
                     <h3 class="font-bold text-yellow-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-exclamation-circle mr-2"></i> 旅遊注意事項</h3>
                     <ul class="list-disc list-inside text-sm space-y-1 text-slate-700">
                         <li>**電源：** 香港使用三腳方型插頭 (G型)，電壓220V。請記得帶轉接頭。</li>
                         <li>**入境：** 每人只可免稅攜帶19支香煙入境香港 。</li>
-                        <li>**天氣：** 12月至1月天氣較涼，請準備薄羽絨或厚外套。</li>
-                        <li>**備用：** 準備至少一張備用信用卡。</li>
+                        <li>**證件：** 若未隨身攜帶身份證明文件屬於違法</li>
                     </ul>
                 </div>
                 
                 <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
-                    <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話</h3>
-                    <div class="flex justify-around text-sm font-medium">
-                        <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
-                            🇭🇰 **香港：** <span class="font-black text-xl">999</span>
-                        </a>
-                        <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
-                            🇨🇳 **中國：** <span class="font-black text-xl">110 / 120 / 119</span>
-                        </a>
-                    </div>
-                </div>
+    <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話（點擊自動撥出）</h3>
+    <div class="flex justify-around text-sm font-medium">
+        <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
+            🇭🇰 **香港：** <span class="font-black text-xl">999</span>
+        </a>
+        <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
+            🇨🇳 **中國大陸 ：** <span class="font-black text-xl">110</span>
+        </a>
+    </div>
+</div>
 
             </section>
 
