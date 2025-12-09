@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 跨年旅行 | 旅程管理</title>
+    <title>2026 跨年旅行 | 旅程管理 (景點管理)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,7 +23,7 @@
 
         <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
             <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
-            <button @click="currentTab = 'map'" :class="{'tab-active': currentTab === 'map'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-map-location-dot block text-lg mb-1"></i>地圖</button>
+            <button @click="currentTab = 'landmarks'" :class="{'tab-active': currentTab === 'landmarks'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-camera block text-lg mb-1"></i>景點</button>
             <button @click="currentTab = 'finance'" :class="{'tab-active': currentTab === 'finance'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-wallet block text-lg mb-1"></i>記帳</button>
             <button @click="currentTab = 'wishlist'" :class="{'tab-active': currentTab === 'wishlist'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-gift block text-lg mb-1"></i>願望</button>
             
@@ -36,22 +36,81 @@
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
-                <div v-for="day in schedule" :key="day.date" class="border-l-4 border-orange-500 pl-4 py-2 relative bg-white rounded-r-xl p-3 shadow-md hover:shadow-lg transition">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-slate-900">{{ day.date }}</span>
-                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ day.tag }}</span>
+                
+                <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
+                    <h3 class="font-bold text-orange-600 mb-3">新增行程</h3>
+                    <input v-model="newScheduleItem.date" placeholder="日期 (e.g., 12/26)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <input v-model="newScheduleItem.tag" placeholder="標籤 (e.g., 購物, 午餐) (選填)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <textarea v-model="newScheduleItem.desc" placeholder="行程描述..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                    <button @click="addScheduleItem" :disabled="!newScheduleItem.date || !newScheduleItem.desc" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                        新增日程 <i class="fa-solid fa-calendar-plus ml-1"></i>
+                    </button>
+                </div>
+
+                <div v-for="day in schedule" :key="day.id" class="border-l-4 border-orange-500 pl-4 py-2 relative bg-white rounded-r-xl p-3 shadow-md hover:shadow-lg transition">
+                    
+                    <div v-if="!day.isEditing">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-slate-900">{{ day.date }}</span>
+                            <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ day.tag }}</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-3">{{ day.desc }}</p>
+                        <div class="flex justify-end gap-3 pt-1 border-t border-slate-100 mt-2">
+                            <button @click="toggleEdit(day)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
+                            <button @click="deleteScheduleItem(day.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-600">{{ day.desc }}</p>
+
+                    <div v-else>
+                         <h4 class="font-bold text-sm mb-2 text-orange-600">編輯行程</h4>
+                         <input v-model="day.date" placeholder="日期 (e.g., 12/26)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                         <input v-model="day.tag" placeholder="標籤" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                         <textarea v-model="day.desc" placeholder="行程描述..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                         <button @click="toggleEdit(day)" class="w-full bg-green-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
+                         </button>
+                    </div>
                 </div>
             </section>
 
-            <section v-if="currentTab === 'map'" class="space-y-4">
-                <div v-for="loc in locations" :key="loc.name" class="p-4 border rounded-2xl flex justify-between items-center bg-white shadow-sm hover:shadow-md transition">
-                    <div>
-                        <h3 class="font-bold">{{ loc.name }}</h3>
-                        <p class="text-xs text-slate-500">{{ loc.type }}</p>
+            <section v-if="currentTab === 'landmarks'" class="space-y-4">
+                
+                <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
+                    <h3 class="font-bold text-orange-600 mb-3">新增景點</h3>
+                    <input v-model="newLandmarkItem.name" placeholder="景點名稱 (e.g., 太平山頂)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <input v-model="newLandmarkItem.type" placeholder="景點類型 (e.g., 自然景觀)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <textarea v-model="newLandmarkItem.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                    <button @click="addLandmarkItem" :disabled="!newLandmarkItem.name" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                        新增景點 <i class="fa-solid fa-plus ml-1"></i>
+                    </button>
+                </div>
+
+                <div v-for="item in landmarks" :key="item.id" class="p-4 border rounded-2xl flex flex-col bg-white shadow-sm hover:shadow-md transition">
+                    
+                    <div v-if="!item.isEditing">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900">{{ item.name }}</h3>
+                                <p class="text-xs text-orange-600">{{ item.type }}</p>
+                            </div>
+                            <a :href="'http://googleusercontent.com/maps.google.com/search?q=' + item.name + '+香港'" target="_blank" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full hover:bg-slate-200">導航 <i class="fa-solid fa-location-arrow ml-1"></i></a>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-3">{{ item.desc }}</p>
+                        <div class="flex justify-end gap-3 pt-1 border-t border-slate-100 mt-2">
+                            <button @click="toggleLandmarkEdit(item)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
+                            <button @click="deleteLandmarkItem(item.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
+                        </div>
                     </div>
-                    <a :href="'http://googleusercontent.com/maps.google.com/search?q=' + loc.name + '+香港'" target="_blank" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm italic">導航 <i class="fa-solid fa-location-arrow ml-1"></i></a>
+
+                    <div v-else>
+                         <h4 class="font-bold text-sm mb-2 text-orange-600">編輯景點</h4>
+                         <input v-model="item.name" placeholder="景點名稱" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                         <input v-model="item.type" placeholder="景點類型" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                         <textarea v-model="item.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                         <button @click="toggleLandmarkEdit(item)" class="w-full bg-green-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
+                         </button>
+                    </div>
                 </div>
             </section>
 
@@ -61,12 +120,12 @@
                     <i class="fa-solid fa-chart-pie text-orange-500 text-3xl opacity-50"></i>
                 </div>
                 <div class="space-y-2 mb-6">
-                    <input v-model="newExpense.item" placeholder="品項" class="w-full p-3 border rounded-xl text-sm">
+                    <input v-model="newExpense.item" placeholder="品項" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
                     <div class="flex gap-2">
-                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm">
-                        <select v-model="newExpense.method" class="flex-1 p-3 border rounded-xl text-sm bg-white">
+                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        <select v-model="newExpense.method" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
                             <option value="現金">💵 現金</option>
-                            <option value="信用卡">💳  信用卡</option>
+                            <option value="信用卡">💳 信用卡</option>
                             <option value="八達通">🚌 八達通</option>
                             <option value="電子支付">📱 電子支付</option>
                         </select>
@@ -91,7 +150,7 @@
                     <select v-model="newWishItem.member" class="p-3 border rounded-xl text-sm bg-white font-medium">
                         <option v-for="member in members" :key="member + '_add'" :value="member">{{ member }}</option>
                     </select>
-                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-xl text-sm">
+                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
                     <button @click="addWishItem" class="bg-slate-900 text-white px-4 rounded-xl active:scale-95 transition"><i class="fa-solid fa-plus"></i></button>
                 </div>
 
@@ -112,83 +171,192 @@
 
         </main>
     </div>
+<script>
+    const { createApp, ref, computed, watch } = Vue;
 
-    <script>
-        const { createApp, ref, computed } = Vue;
-        createApp({
-            setup() {
-                // 控制當前顯示的頁籤
-                const currentTab = ref('itinerary'); 
-                
-                // === 願望清單變數與邏輯 ===
-                const members = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
-                const selectedMember = ref('全部'); // 預設顯示全部
-                const newWishItem = ref({ member: '橞宜', item: '' }); // 預設新增給橞宜
-                let nextWishId = 3; // 用於給予每個願望獨特的 ID
+    // --- Local Storage 助手函式：讀取與儲存通用邏輯 ---
 
-                // 願望清單數據 (每個項目多了一個 member 屬性)
-                const wishlist = ref([
-                    { id: 1, member: '橞宜', item: '珍妮曲奇', done: false }, 
-                    { id: 2, member: '爸爸', item: '萬寶路香菸', done: false }, 
-                ]);
-
-                // 篩選清單的計算屬性
-                const filteredWishlist = computed(() => {
-                    if (selectedMember.value === '全部') {
-                        // 顯示所有人，並依成員排序
-                        return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
-                    }
-                    return wishlist.value.filter(item => item.member === selectedMember.value);
-                });
-
-                // 新增願望
-                function addWishItem() {
-                    if (newWishItem.value.item && newWishItem.value.member) {
-                        wishlist.value.push({ 
-                            id: nextWishId++,
-                            member: newWishItem.value.member,
-                            item: newWishItem.value.item, 
-                            done: false 
-                        });
-                        newWishItem.value.item = ''; // 清空輸入框
-                        // 新增完畢後，將篩選器切換到新增者的清單
-                        selectedMember.value = newWishItem.value.member;
-                    }
-                }
-                
-                // === 其他頁籤邏輯 (保持不變) ===
-
-                const schedule = ref([
-                    { date: '12/25', tag: '兩人啟程', desc: '抵港、check-in 香港家、旺角晚餐' },
-                    { date: '01/01', tag: '家族匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁' },
-                    { date: '01/04', tag: '家族回程', desc: '送機、自由活動、晚上考慮 Long Stay' }
-                ]);
-                
-                const locations = ref([
-                    { name: '香港國際機場', type: '交通樞紐' },
-                    { name: '香港迪士尼樂園', type: '遊樂景點' },
-                    { name: '中環大館', type: '文化藝術' }
-                ]);
-                
-                const expenses = ref([]);
-                const newExpense = ref({ item: '', amount: null, method: '現金' });
-                const totalExpense = computed(() => expenses.value.reduce((sum, exp) => sum + exp.amount, 0));
-                
-                function addExpense() {
-                    if (newExpense.value.item && newExpense.value.amount) {
-                        expenses.value.unshift({ ...newExpense.value });
-                        newExpense.value = { item: '', amount: null, method: '現金' };
-                    }
-                }
-                
-                // 將所有變數回傳給模板
-                return { 
-                    currentTab, schedule, locations, expenses, newExpense, totalExpense, addExpense, 
-                    // 願望清單相關變數
-                    members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem
-                };
+    // 通用讀取函式
+    function loadData(key, defaultData = []) {
+        try {
+            const stored = localStorage.getItem(key);
+            // 由於行程和景點需要 isEditing 屬性，確保舊資料有這個屬性
+            const data = stored ? JSON.parse(stored) : defaultData;
+            if (key === 'hk_trip_schedule' || key === 'hk_trip_landmarks') {
+                return data.map(item => ({ ...item, isEditing: false }));
             }
-        }).mount('#app');
-    </script>
+            return data;
+        } catch (e) {
+            console.error(`無法從 Local Storage 讀取資料: ${key}`, e);
+            return defaultData;
+        }
+    }
+
+    // 通用儲存函式
+    function saveData(key, list) {
+        localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    createApp({
+        setup() {
+            const currentTab = ref('itinerary'); 
+            
+            // --- 1. 行程管理邏輯 (CRUD & 持久化) ---
+            
+            const defaultSchedule = [
+                 { id: 1, date: '12/25', tag: '兩人啟程', desc: '抵港、check-in 香港家、旺角晚餐', isEditing: false },
+                 { id: 2, date: '01/01', tag: '家族匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁', isEditing: false },
+                 { id: 3, date: '01/04', tag: '家族回程', desc: '送機、自由活動、晚上考慮 Long Stay', isEditing: false }
+            ];
+
+            const initialSchedule = loadData('hk_trip_schedule', defaultSchedule);
+            
+            let nextScheduleId = initialSchedule.length > 0 
+                                 ? Math.max(...initialSchedule.map(s => s.id)) + 1 
+                                 : 4; 
+
+            const schedule = ref(initialSchedule);
+
+            watch(schedule, (newList) => {
+                saveData('hk_trip_schedule', newList);
+            }, { deep: true });
+
+            const newScheduleItem = ref({ date: '', tag: '', desc: '' });
+
+            function addScheduleItem() {
+                if (newScheduleItem.value.date && newScheduleItem.value.desc) {
+                    schedule.value.push({
+                        id: nextScheduleId++,
+                        date: newScheduleItem.value.date,
+                        tag: newScheduleItem.value.tag || '行程',
+                        desc: newScheduleItem.value.desc,
+                        isEditing: false
+                    });
+                    newScheduleItem.value = { date: '', tag: '', desc: '' };
+                }
+            }
+
+            function toggleEdit(item) {
+                item.isEditing = !item.isEditing;
+            }
+
+            function deleteScheduleItem(id) {
+                schedule.value = schedule.value.filter(item => item.id !== id);
+            }
+
+            // --- 2. 景點管理邏輯 (CRUD & 持久化) ---
+            
+            const defaultLandmarks = [
+                { id: 1, name: '香港國際機場', type: '交通樞紐', desc: '抵港地點', isEditing: false },
+                { id: 2, name: '香港迪士尼樂園', type: '遊樂景點', desc: '預計 1/2 帶家人去', isEditing: false },
+                { id: 3, name: '中環大館', type: '文化藝術', desc: '中環區的歷史建築群', isEditing: false }
+            ];
+
+            const initialLandmarks = loadData('hk_trip_landmarks', defaultLandmarks);
+            
+            let nextLandmarkId = initialLandmarks.length > 0
+                                 ? Math.max(...initialLandmarks.map(l => l.id)) + 1
+                                 : 4;
+
+            const landmarks = ref(initialLandmarks);
+
+            watch(landmarks, (newList) => {
+                saveData('hk_trip_landmarks', newList);
+            }, { deep: true });
+
+            const newLandmarkItem = ref({ name: '', type: '', desc: '' });
+
+            function addLandmarkItem() {
+                if (newLandmarkItem.value.name) {
+                    landmarks.value.push({
+                        id: nextLandmarkId++,
+                        name: newLandmarkItem.value.name,
+                        type: newLandmarkItem.value.type || '景點',
+                        desc: newLandmarkItem.value.desc || '',
+                        isEditing: false
+                    });
+                    newLandmarkItem.value = { name: '', type: '', desc: '' };
+                }
+            }
+
+            function toggleLandmarkEdit(item) {
+                item.isEditing = !item.isEditing;
+            }
+
+            function deleteLandmarkItem(id) {
+                landmarks.value = landmarks.value.filter(item => item.id !== id);
+            }
+            
+            // --- 3. 記帳邏輯 (持久化) ---
+            
+            const initialExpenses = loadData('hk_trip_expenses');
+            const expenses = ref(initialExpenses);
+
+            watch(expenses, (newList) => {
+                saveData('hk_trip_expenses', newList);
+            }, { deep: true });
+
+            const newExpense = ref({ item: '', amount: null, method: '現金' });
+            const totalExpense = computed(() => expenses.value.reduce((sum, exp) => sum + exp.amount, 0));
+            
+            function addExpense() {
+                if (newExpense.value.item && newExpense.value.amount) {
+                    expenses.value.unshift({ ...newExpense.value });
+                    newExpense.value = { item: '', amount: null, method: '現金' };
+                }
+            }
+
+            // --- 4. 願望清單邏輯 (持久化) ---
+
+            const members = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
+            const selectedMember = ref('全部'); 
+            const newWishItem = ref({ member: '橞宜', item: '' }); 
+            
+            const initialWishlist = loadData('hk_trip_wishlist');
+            let nextWishId = initialWishlist.length > 0 
+                                ? Math.max(...initialWishlist.map(w => w.id)) + 1 
+                                : 1;
+
+            const wishlist = ref(initialWishlist);
+
+            watch(wishlist, (newList) => {
+                saveData('hk_trip_wishlist', newList);
+            }, { deep: true });
+
+            const filteredWishlist = computed(() => {
+                if (selectedMember.value === '全部') {
+                    return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
+                }
+                return wishlist.value.filter(item => item.member === selectedMember.value);
+            });
+
+            function addWishItem() {
+                if (newWishItem.value.item && newWishItem.value.member) {
+                    wishlist.value.push({ 
+                        id: nextWishId++,
+                        member: newWishItem.value.member,
+                        item: newWishItem.value.item, 
+                        done: false 
+                    });
+                    newWishItem.value.item = ''; 
+                    selectedMember.value = newWishItem.value.member;
+                }
+            }
+
+
+            return { 
+                currentTab, 
+                // 行程
+                schedule, newScheduleItem, addScheduleItem, toggleEdit, deleteScheduleItem,
+                // 景點
+                landmarks, newLandmarkItem, addLandmarkItem, toggleLandmarkEdit, deleteLandmarkItem,
+                // 記帳
+                expenses, newExpense, totalExpense, addExpense, 
+                // 願望清單
+                members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem
+            };
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>
