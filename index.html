@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 跨年旅行 | 旅程管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        /* 導航列被選中時的樣式 */
+        .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="app" class="max-w-md mx-auto min-h-screen pb-20 relative shadow-2xl bg-white">
+        
+        <header class="bg-slate-900 text-white p-6 rounded-b-3xl shadow-lg">
+            <h1 class="text-2xl font-bold italic">跨年旅行 <span class="text-orange-500">2026</span></h1>
+            <p class="text-sm opacity-75">12/25 - 01/04 | ➔ 香港</p>
+        </header>
+
+        <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
+            <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
+            <button @click="currentTab = 'map'" :class="{'tab-active': currentTab === 'map'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-map-location-dot block text-lg mb-1"></i>地圖</button>
+            <button @click="currentTab = 'finance'" :class="{'tab-active': currentTab === 'finance'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-wallet block text-lg mb-1"></i>記帳</button>
+            <button @click="currentTab = 'wishlist'" :class="{'tab-active': currentTab === 'wishlist'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-gift block text-lg mb-1"></i>願望</button>
+            
+            <a href="https://www.gbaweather.net/tc/" target="_blank" class="py-4 flex-1 text-sm flex flex-col items-center justify-center text-slate-400 hover:text-orange-500 transition duration-150">
+                <i class="fa-solid fa-cloud-sun block text-lg mb-1"></i>
+                天氣
+            </a>
+        </nav>
+
+        <main class="p-4">
+            
+            <section v-if="currentTab === 'itinerary'" class="space-y-4">
+                <div v-for="day in schedule" :key="day.date" class="border-l-4 border-orange-500 pl-4 py-2 relative bg-white rounded-r-xl p-3 shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-900">{{ day.date }}</span>
+                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ day.tag }}</span>
+                    </div>
+                    <p class="text-sm text-slate-600">{{ day.desc }}</p>
+                </div>
+            </section>
+
+            <section v-if="currentTab === 'map'" class="space-y-4">
+                <div v-for="loc in locations" :key="loc.name" class="p-4 border rounded-2xl flex justify-between items-center bg-white shadow-sm hover:shadow-md transition">
+                    <div>
+                        <h3 class="font-bold">{{ loc.name }}</h3>
+                        <p class="text-xs text-slate-500">{{ loc.type }}</p>
+                    </div>
+                    <a :href="'http://googleusercontent.com/maps.google.com/search?q=' + loc.name + '+香港'" target="_blank" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm italic">導航 <i class="fa-solid fa-location-arrow ml-1"></i></a>
+                </div>
+            </section>
+
+            <section v-if="currentTab === 'finance'">
+                <div class="bg-slate-900 text-white p-4 rounded-2xl mb-4 flex justify-between">
+                    <div><p class="text-xs opacity-70">總支出 (HKD)</p><p class="text-2xl font-bold">${{ totalExpense }}</p></div>
+                    <i class="fa-solid fa-chart-pie text-orange-500 text-3xl opacity-50"></i>
+                </div>
+                <div class="space-y-2 mb-6">
+                    <input v-model="newExpense.item" placeholder="品項" class="w-full p-3 border rounded-xl text-sm">
+                    <div class="flex gap-2">
+                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm">
+                        <select v-model="newExpense.method" class="flex-1 p-3 border rounded-xl text-sm bg-white">
+                            <option value="現金">💵 現金</option>
+                            <option value="信用卡">💳  信用卡</option>
+                            <option value="八達通">🚌 八達通</option>
+                            <option value="電子支付">📱 電子支付</option>
+                        </select>
+                    </div>
+                    <button @click="addExpense" class="w-full bg-orange-500 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
+                </div>
+                <div v-for="(exp, index) in expenses" :key="index" class="flex justify-between p-3 border-b text-sm">
+                    <span>{{ exp.item }} <small class="text-slate-400">({{ exp.method }})</small></span>
+                    <span class="font-medium text-red-500">-${{ exp.amount }}</span>
+                </div>
+            </section>
+
+            <section v-if="currentTab === 'wishlist'" class="space-y-4">
+                <div class="mb-4">
+                    <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white shadow-md focus:ring-2 focus:ring-orange-500">
+                        <option value="全部">所有人 (顯示所有願望)</option>
+                        <option v-for="member in members" :key="member" :value="member">{{ member }}</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2 mb-6">
+                    <select v-model="newWishItem.member" class="p-3 border rounded-xl text-sm bg-white font-medium">
+                        <option v-for="member in members" :key="member + '_add'" :value="member">{{ member }}</option>
+                    </select>
+                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-xl text-sm">
+                    <button @click="addWishItem" class="bg-slate-900 text-white px-4 rounded-xl active:scale-95 transition"><i class="fa-solid fa-plus"></i></button>
+                </div>
+
+                <div v-if="filteredWishlist.length > 0" class="space-y-2">
+                    <div v-for="(item, index) in filteredWishlist" :key="item.id" class="flex items-center p-3 bg-slate-50 rounded-xl justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" v-model="item.done" class="mr-3 w-5 h-5 accent-orange-500">
+                            <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.item }}</span>
+                        </div>
+                        <span v-if="selectedMember === '全部'" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ item.member }}</span>
+                    </div>
+                </div>
+                <div v-else class="text-center text-slate-500 p-8 border border-dashed rounded-xl">
+                    <i class="fa-solid fa-face-frown text-2xl mb-2"></i>
+                    <p>{{ selectedMember }} 的願望清單是空的！</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+        createApp({
+            setup() {
+                // 控制當前顯示的頁籤
+                const currentTab = ref('itinerary'); 
+                
+                // === 願望清單變數與邏輯 ===
+                const members = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
+                const selectedMember = ref('全部'); // 預設顯示全部
+                const newWishItem = ref({ member: '橞宜', item: '' }); // 預設新增給橞宜
+                let nextWishId = 3; // 用於給予每個願望獨特的 ID
+
+                // 願望清單數據 (每個項目多了一個 member 屬性)
+                const wishlist = ref([
+                    { id: 1, member: '橞宜', item: '珍妮曲奇', done: false }, 
+                    { id: 2, member: '爸爸', item: '萬寶路香菸', done: false }, 
+                ]);
+
+                // 篩選清單的計算屬性
+                const filteredWishlist = computed(() => {
+                    if (selectedMember.value === '全部') {
+                        // 顯示所有人，並依成員排序
+                        return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
+                    }
+                    return wishlist.value.filter(item => item.member === selectedMember.value);
+                });
+
+                // 新增願望
+                function addWishItem() {
+                    if (newWishItem.value.item && newWishItem.value.member) {
+                        wishlist.value.push({ 
+                            id: nextWishId++,
+                            member: newWishItem.value.member,
+                            item: newWishItem.value.item, 
+                            done: false 
+                        });
+                        newWishItem.value.item = ''; // 清空輸入框
+                        // 新增完畢後，將篩選器切換到新增者的清單
+                        selectedMember.value = newWishItem.value.member;
+                    }
+                }
+                
+                // === 其他頁籤邏輯 (保持不變) ===
+
+                const schedule = ref([
+                    { date: '12/25', tag: '兩人啟程', desc: '抵港、check-in 香港家、旺角晚餐' },
+                    { date: '01/01', tag: '家族匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁' },
+                    { date: '01/04', tag: '家族回程', desc: '送機、自由活動、晚上考慮 Long Stay' }
+                ]);
+                
+                const locations = ref([
+                    { name: '香港國際機場', type: '交通樞紐' },
+                    { name: '香港迪士尼樂園', type: '遊樂景點' },
+                    { name: '中環大館', type: '文化藝術' }
+                ]);
+                
+                const expenses = ref([]);
+                const newExpense = ref({ item: '', amount: null, method: '現金' });
+                const totalExpense = computed(() => expenses.value.reduce((sum, exp) => sum + exp.amount, 0));
+                
+                function addExpense() {
+                    if (newExpense.value.item && newExpense.value.amount) {
+                        expenses.value.unshift({ ...newExpense.value });
+                        newExpense.value = { item: '', amount: null, method: '現金' };
+                    }
+                }
+                
+                // 將所有變數回傳給模板
+                return { 
+                    currentTab, schedule, locations, expenses, newExpense, totalExpense, addExpense, 
+                    // 願望清單相關變數
+                    members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
