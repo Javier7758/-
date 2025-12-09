@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 跨年旅行 | 雲端同步版 (全員可編輯)</title>
+    <title>2026 跨年旅行 | 本地儲存版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,24 +11,13 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
     </style>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="app" class="max-w-md mx-auto min-h-screen pb-20 relative shadow-2xl bg-white">
         
         <header class="bg-slate-900 text-white p-6 rounded-b-3xl shadow-lg">
             <h1 class="text-2xl font-bold italic">跨年旅行 <span class="text-orange-500">2026</span></h1>
-            
-            <div class="mt-2 flex justify-between items-center text-sm">
-                <p v-if="user" class="opacity-75">
-                    ✅ 雲端連線成功 
-                    <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-500 text-white font-bold">自動同步中</span>
-                </p>
-                <p v-else class="text-yellow-400">🚨 正在嘗試連線...</p>
-            </div>
+            <p class="text-sm opacity-75">資料已儲存於您的裝置，無需登入</p>
         </header>
 
         <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
@@ -46,14 +35,13 @@
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
-                <div v-if="!isLoggedIn" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先連線雲端，以同步您的行程資料。</div>
-
+                
                 <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
                     <h3 class="font-bold text-orange-600 mb-3">新增行程</h3>
-                    <input v-model="newScheduleItem.date" placeholder="日期 (e.g., 12/26)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                    <input v-model="newScheduleItem.tag" placeholder="標籤 (e.g., 購物, 午餐) (選填)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                    <textarea v-model="newScheduleItem.desc" placeholder="行程描述..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn"></textarea>
-                    <button @click="addScheduleItem" :disabled="!newScheduleItem.date || !newScheduleItem.desc || !isLoggedIn" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                    <input v-model="newScheduleItem.date" placeholder="日期 (e.g., 12/26)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <input v-model="newScheduleItem.tag" placeholder="標籤 (e.g., 購物, 午餐) (選填)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <textarea v-model="newScheduleItem.desc" placeholder="行程描述..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                    <button @click="addScheduleItem" :disabled="!newScheduleItem.date || !newScheduleItem.desc" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
                         新增日程 <i class="fa-solid fa-calendar-plus ml-1"></i>
                     </button>
                 </div>
@@ -67,8 +55,8 @@
                         </div>
                         <p class="text-sm text-slate-600 mb-3">{{ day.desc }}</p>
                         <div class="flex justify-end gap-3 pt-1 border-t border-slate-100 mt-2">
-                            <button @click="toggleEdit(day)" :disabled="!isLoggedIn" class="text-xs text-blue-500 disabled:opacity-50 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
-                            <button @click="deleteScheduleItem(day.id)" :disabled="!isLoggedIn" class="text-xs text-red-500 disabled:opacity-50 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
+                            <button @click="toggleEdit(day)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
+                            <button @click="deleteScheduleItem(day.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
                         </div>
                     </div>
 
@@ -85,14 +73,13 @@
             </section>
 
             <section v-if="currentTab === 'landmarks'" class="space-y-4">
-                 <div v-if="!isLoggedIn" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先連線雲端，以同步您的景點資料。</div>
                 
                 <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
                     <h3 class="font-bold text-orange-600 mb-3">新增景點</h3>
-                    <input v-model="newLandmarkItem.name" placeholder="景點名稱 (e.g., 太平山頂)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                    <input v-model="newLandmarkItem.type" placeholder="景點類型 (e.g., 自然景觀)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                    <textarea v-model="newLandmarkItem.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn"></textarea>
-                    <button @click="addLandmarkItem" :disabled="!newLandmarkItem.name || !isLoggedIn" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                    <input v-model="newLandmarkItem.name" placeholder="景點名稱 (e.g., 太平山頂)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <input v-model="newLandmarkItem.type" placeholder="景點類型 (e.g., 自然景觀)" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
+                    <textarea v-model="newLandmarkItem.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                    <button @click="addLandmarkItem" :disabled="!newLandmarkItem.name" class="w-full bg-slate-900 disabled:opacity-50 text-white p-2 rounded-xl font-bold active:scale-95 transition">
                         新增景點 <i class="fa-solid fa-plus ml-1"></i>
                     </button>
                 </div>
@@ -109,158 +96,12 @@
                         </div>
                         <p class="text-sm text-slate-600 mb-3">{{ item.desc }}</p>
                         <div class="flex justify-end gap-3 pt-1 border-t border-slate-100 mt-2">
-                            <button @click="toggleLandmarkEdit(item)" :disabled="!isLoggedIn" class="text-xs text-blue-500 disabled:opacity-50 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
-                            <button @click="deleteLandmarkItem(item.id)" :disabled="!isLoggedIn" class="text-xs text-red-500 disabled:opacity-50 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
+                            <button @click="toggleLandmarkEdit(item)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
+                            <button @click="deleteLandmarkItem(item.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
                         </div>
                     </div>
 
                     <div v-else>
                          <h4 class="font-bold text-sm mb-2 text-orange-600">編輯景點</h4>
                          <input v-model="item.name" placeholder="景點名稱" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                         <input v-model="item.type" placeholder="景點類型" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-orange-500 focus:border-orange-500">
-                         <textarea v-model="item.desc" placeholder="景點介紹/筆記..." rows="2" class="w-full p-2 border rounded-lg text-sm mb-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
-                         <button @click="toggleLandmarkEdit(item)" class="w-full bg-green-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
-                         </button>
-                    </div>
-                </div>
-            </section>
-
-            <section v-if="currentTab === 'finance'">
-                <div v-if="!isLoggedIn" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先連線雲端，以同步您的記帳資料。</div>
-
-                <div class="bg-slate-900 text-white p-4 rounded-2xl mb-4 flex justify-between">
-                    <div><p class="text-xs opacity-70">總支出 (HKD)</p><p class="text-2xl font-bold">${{ totalExpense }}</p></div>
-                    <i class="fa-solid fa-chart-pie text-orange-500 text-3xl opacity-50"></i>
-                </div>
-                <div class="space-y-2 mb-6">
-                    <input v-model="newExpense.item" placeholder="品項" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                    <div class="flex gap-2">
-                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                        <select v-model="newExpense.method" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                            <option value="現金">💵 現金</option>
-                            <option value="信用卡">💳 信用卡</option>
-                            <option value="八達通">🚌 八達通</option>
-                            <option value="電子支付">📱 電子支付</option>
-                        </select>
-                    </div>
-                    <button @click="addExpense" :disabled="!isLoggedIn" class="w-full bg-orange-500 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
-                </div>
-                <div v-for="(exp, index) in expenses" :key="index" class="flex justify-between p-3 border-b text-sm">
-                    <span>{{ exp.item }} <small class="text-slate-400">({{ exp.method }})</small></span>
-                    <span class="font-medium text-red-500">-${{ exp.amount }}</span>
-                </div>
-            </section>
-
-            <section v-if="currentTab === 'wishlist'" class="space-y-4">
-                 <div v-if="!isLoggedIn" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先連線雲端，以同步您的願望清單。</div>
-
-                <div class="mb-4">
-                    <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white shadow-md focus:ring-2 focus:ring-orange-500">
-                        <option value="全部">所有人 (顯示所有願望)</option>
-                        <option v-for="member in members" :key="member" :value="member">{{ member }}</option>
-                    </select>
-                </div>
-
-                <div class="flex gap-2 mb-6">
-                    <select v-model="newWishItem.member" class="p-3 border rounded-xl text-sm bg-white font-medium" :disabled="!isLoggedIn">
-                        <option v-for="member in members" :key="member + '_add'" :value="member">{{ member }}</option>
-                    </select>
-                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500" :disabled="!isLoggedIn">
-                    <button @click="addWishItem" :disabled="!isLoggedIn" class="bg-slate-900 text-white px-4 rounded-xl active:scale-95 transition"><i class="fa-solid fa-plus"></i></button>
-                </div>
-
-                <div v-if="filteredWishlist.length > 0" class="space-y-2">
-                    <div v-for="(item, index) in filteredWishlist" :key="item.id" class="flex items-center p-3 bg-slate-50 rounded-xl justify-between">
-                        <div class="flex items-center">
-                            <input type="checkbox" v-model="item.done" :disabled="!isLoggedIn" class="mr-3 w-5 h-5 accent-orange-500">
-                            <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.item }}</span>
-                        </div>
-                        <span v-if="selectedMember === '全部'" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ item.member }}</span>
-                        
-                        <button @click="deleteWishItem(item.id)" :disabled="!isLoggedIn" class="ml-3 text-red-500 disabled:opacity-50 hover:text-red-700">
-                            <i class="fa-solid fa-times text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-                <div v-else class="text-center text-slate-500 p-8 border border-dashed rounded-xl">
-                    <i class="fa-solid fa-face-frown text-2xl mb-2"></i>
-                    <p>{{ selectedMember }} 的願望清單是空的！</p>
-                </div>
-            </section>
-
-        </main>
-    </div>
-<script>
-    const { createApp, ref, computed, watch } = Vue;
-
-    // =======================================================
-    // 🚩 你的 Firebase Config (請務必替換為你專屬的金鑰！) 🚩
-    // =======================================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyDVWuYmV0Cp3REPJ-gIybjNjTtdLW0mST8", 
-        authDomain: "project-8464896306397913259.firebaseapp.com",
-        projectId: "project-8464896306397913259",
-        storageBucket: "project-8464896306397913259.firebasestorage.app",
-        messagingSenderId: "647207538830",
-        appId: "1:647207538830:web:d1d5447961c615334179df", 
-        measurementId: "G-VM8SF4Q9HE" 
-    };
-
-    // 關鍵變數：群組 ID (所有資料都存在這個 ID 下)
-    const GROUP_ID = "HK2026_TRIP"; 
-
-    // 初始化 Firebase 和服務
-    // 如果這裡的初始化失敗，後續的 auth 和 db 呼叫都會拋錯。
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // 儲存資料的預設結構（用於首次用戶）
-    const defaultData = {
-        schedule: [
-            { id: 1, date: '12/25', tag: '啟程', desc: '抵港、check-in', isEditing: false },
-        ],
-        landmarks: [
-            { id: 1, name: '香港迪士尼樂園', type: '遊樂景點', desc: '預計 1/2', isEditing: false },
-        ],
-        expenses: [{ item: '機票', amount: 8000, method: '信用卡' }],
-        wishlist: [{ id: 1, member: '橞宜', item: '小熊維尼公仔', done: false }],
-    };
-
-    // =======================================================
-    // 🚩 核心同步邏輯 (全員可讀寫) 🚩
-    // =======================================================
-
-    // 從 Firestore 讀取所有資料
-    function loadAllDataFromFirestore() {
-        db.collection('groups').doc(GROUP_ID).get()
-            .then((doc) => {
-                const data = doc.exists ? doc.data() : defaultData;
-                
-                // 1. 載入行程 (Schedule)
-                schedule.value = data.schedule.map(item => ({ ...item, isEditing: false }));
-                const maxSId = schedule.value.length > 0 ? Math.max(...schedule.value.map(s => s.id)) : 0;
-                nextScheduleId = maxSId + 1;
-
-                // 2. 載入景點 (Landmarks)
-                landmarks.value = data.landmarks.map(item => ({ ...item, isEditing: false }));
-                const maxLId = landmarks.value.length > 0 ? Math.max(...landmarks.value.map(l => l.id)) : 0;
-                nextLandmarkId = maxLId + 1;
-                
-                // 3. 載入記帳 (Expenses)
-                expenses.value = data.expenses || [];
-                
-                // 4. 載入願望清單 (Wishlist)
-                wishlist.value = data.wishlist || [];
-                const maxWId = wishlist.value.length > 0 ? Math.max(...wishlist.value.map(w => w.id)) : 0;
-                nextWishId = maxWId + 1;
-
-                console.log("✅ 資料從 Firestore 載入成功！");
-            })
-            .catch(error => {
-                console.error("讀取 Firestore 失敗:", error);
-            });
-    }
-
-    // 儲存所有資料到 Firestore (所有登入
+                         <input v-model="item.type" placeholder="景點類型" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring
