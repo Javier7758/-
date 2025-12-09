@@ -33,12 +33,31 @@
                 天氣
             </a>
             
-            <button @click="currentTab = 'essentials'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>須知</button>
+            <button @click="currentTab = 'essentials'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>重要資訊</button>
         </nav>
 
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
+                
+                <div class="bg-slate-200 p-4 rounded-2xl mb-4 shadow-inner">
+                    <h3 class="font-bold text-slate-800 mb-2 flex justify-between items-center">
+                        匯率計算機 (TWD) <i class="fa-solid fa-calculator"></i>
+                    </h3>
+                    <div class="flex gap-2 mb-3">
+                        <input v-model.number="calculator.amount" type="number" placeholder="輸入金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        <select v-model="calculator.currency" class="p-3 border rounded-xl text-sm bg-white">
+                            <option value="HKD">HKD (港幣1:4)</option>
+                            <option value="RMB">RMB (人民幣1:4.4)</option>
+                        </select>
+                    </div>
+                    <p v-if="calculator.amount > 0" class="text-center text-lg font-bold text-orange-700">
+                        = ${{ calculatedTWD.toFixed(2) }} TWD
+                    </p>
+                    <p v-else class="text-center text-sm text-slate-500">
+                        請輸入金額以開始計算
+                    </p>
+                </div>
                 <div v-for="day in schedule" :key="day.id" class="border-l-4 border-orange-500 pl-4 py-2 relative bg-white rounded-r-xl p-3 shadow-md hover:shadow-lg transition">
                     <div class="flex justify-between items-center mb-2">
                         <span class="font-bold text-slate-900">{{ day.date }}</span>
@@ -49,7 +68,6 @@
             </section>
 
             <section v-if="currentTab === 'essentials'" class="space-y-6">
-                <h2 class="text-2xl font-bold text-slate-900 border-b pb-2">「行前須知」：重要資訊 💡</h2>
                 
                <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
     <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
@@ -93,17 +111,8 @@
     </div>
 </div>
 
-                <div class="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
-                    <h3 class="font-bold text-yellow-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-exclamation-circle mr-2"></i> 旅遊注意事項</h3>
-                    <ul class="list-disc list-inside text-sm space-y-1 text-slate-700">
-                        <li>**電源：** 香港使用三腳方型插頭 (G型)，電壓220V。請記得帶轉接頭。</li>
-                        <li>**入境：** 每人只可免稅攜帶19支香煙入境香港 。</li>
-                        <li>**證件：** 若未隨身攜帶身份證明文件屬於違法</li>
-                    </ul>
-                </div>
-                
-                <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
-    <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話（點擊自動撥出）</h3>
+               <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
+    <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話（點擊撥出）</h3>
     <div class="flex justify-around text-sm font-medium">
         <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
             🇭🇰 **香港：** <span class="font-black text-xl">999</span>
@@ -114,28 +123,20 @@
     </div>
 </div>
 
+<div class="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
+    <h3 class="font-bold text-yellow-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-exclamation-circle mr-2"></i> 旅遊注意事項</h3>
+    <ul class="list-disc list-inside text-sm space-y-1 text-slate-700">
+        <li>**電源：** 220V部分電器需使用轉接頭及變壓器。</li>
+        <li>**入境：** 不可攜帶加熱煙及多於19支香煙入境 。</li>
+        <li>**證件：** 若未隨身攜帶身份證明文件屬於違法</li>
+    </ul>
+
+</div>
+
             </section>
 
             <section v-if="currentTab === 'finance'">
                 
-                <div class="bg-slate-200 p-4 rounded-2xl mb-4 shadow-inner">
-                    <h3 class="font-bold text-slate-800 mb-2 flex justify-between items-center">
-                        匯率計算機 (TWD) <i class="fa-solid fa-calculator"></i>
-                    </h3>
-                    <div class="flex gap-2 mb-3">
-                        <input v-model.number="calculator.amount" type="number" placeholder="輸入金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                        <select v-model="calculator.currency" class="p-3 border rounded-xl text-sm bg-white">
-                            <option value="HKD">HKD (港幣 1:4)</option>
-                            <option value="RMB">RMB (人民幣 1:4.4)</option>
-                        </select>
-                    </div>
-                    <p v-if="calculator.amount > 0" class="text-center text-lg font-bold text-orange-700">
-                        = ${{ calculatedTWD.toFixed(2) }} TWD
-                    </p>
-                    <p v-else class="text-center text-sm text-slate-500">
-                        請輸入金額以開始計算
-                    </p>
-                </div>
                 <div @click="openStatsModal" class="bg-slate-900 text-white p-4 rounded-2xl mb-4 shadow-lg cursor-pointer transition duration-150 hover:bg-slate-800">
                     <p class="text-xs opacity-70 flex justify-between items-center">
                         總支出 (TWD)
@@ -158,7 +159,7 @@
                             </select>
                         </div>
                         <div v-else-if="newExpense.category === '交通' && newExpense.item === '其他交通'">
-                             <input v-model="newExpense.item" placeholder="請輸入交通簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                               <input v-model="newExpense.item" placeholder="請輸入交通簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
                         </div>
                         <div v-else>
                             <input v-model="newExpense.item" placeholder="簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
@@ -166,19 +167,19 @@
                     </div>
                     
                     <div class="flex gap-2">
-                         <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                            <option value="吃"><i class="fa-solid fa-utensils"></i> 吃</option>
-                            <option value="交通"><i class="fa-solid fa-bus"></i> 交通</option>
-                            <option value="購物"><i class="fa-solid fa-bag-shopping"></i> 購物</option>
-                            <option value="門票"><i class="fa-solid fa-ticket"></i> 門票</option>
-                            <option value="其他"><i class="fa-solid fa-ellipsis-h"></i> 其他</option>
-                        </select>
-                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                        <select v-model="newExpense.currency" class="w-20 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                            <option value="HKD">HKD</option>
-                            <option value="RMB">RMB</option>
-                            <option value="TWD">TWD</option>
-                        </select>
+                           <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                                <option value="吃喝"><i class="fa-solid fa-utensils"></i> 吃喝</option>
+                                <option value="交通"><i class="fa-solid fa-bus"></i> 交通</option>
+                                <option value="購物"><i class="fa-solid fa-bag-shopping"></i> 購物</option>
+                                <option value="門票"><i class="fa-solid fa-ticket"></i> 門票</option>
+                                <option value="其他"><i class="fa-solid fa-ellipsis-h"></i> 其他</option>
+                            </select>
+                            <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                            <select v-model="newExpense.currency" class="w-20 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                                <option value="HKD">HKD</option>
+                                <option value="RMB">RMB</option>
+                                <option value="TWD">TWD</option>
+                            </select>
                     </div>
 
                     <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
@@ -210,49 +211,49 @@
                     </div>
 
                     <div v-else class="p-2 bg-white rounded-lg border border-blue-300">
-                         <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
-                         
-                         <div v-if="exp.category === '交通' && exp.item === '其他交通'">
-                            <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
-                         </div>
-                         <div v-else-if="exp.category === '交通'">
-                            <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
-                                <option value="巴士">巴士</option>
-                                <option value="地鐵">地鐵</option>
-                                <option value="的士">的士</option>
-                                <option value="其他交通">其他</option>
-                            </select>
-                         </div>
-                         <div v-else>
-                            <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
-                         </div>
+                           <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
+                           
+                           <div v-if="exp.category === '交通' && exp.item === '其他交通'">
+                                <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                           </div>
+                           <div v-else-if="exp.category === '交通'">
+                                <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="巴士">巴士</option>
+                                    <option value="地鐵">地鐵</option>
+                                    <option value="的士">的士</option>
+                                    <option value="其他交通">其他</option>
+                                </select>
+                           </div>
+                           <div v-else>
+                                <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                           </div>
 
-                         <div class="flex gap-2 mb-2">
-                            <select v-model="exp.category" class="flex-1 p-2 border rounded-lg text-sm bg-white">
-                                <option value="吃">吃</option>
-                                <option value="交通">交通</option>
-                                <option value="購物">購物</option>
-                                <option value="門票">門票</option>
+                           <div class="flex gap-2 mb-2">
+                                <select v-model="exp.category" class="flex-1 p-2 border rounded-lg text-sm bg-white">
+                                    <option value="吃喝">吃喝</option>
+                                    <option value="交通">交通</option>
+                                    <option value="購物">購物</option>
+                                    <option value="門票">門票</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                                <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
+                                 <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
+                                    <option value="HKD">HKD</option>
+                                    <option value="RMB">RMB</option>
+                                    <option value="TWD">TWD</option>
+                                </select>
+                           </div>
+                           <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
+                                <option value="現金">現金</option>
+                                <option value="信用卡">信用卡</option>
+                                <option value="八達通">八達通</option>
+                                <option value="電子支付">電子支付</option>
                                 <option value="其他">其他</option>
-                            </select>
-                            <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
-                             <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
-                                <option value="HKD">HKD</option>
-                                <option value="RMB">RMB</option>
-                                <option value="TWD">TWD</option>
-                            </select>
-                         </div>
-                         <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
-                            <option value="現金">現金</option>
-                            <option value="信用卡">信用卡</option>
-                            <option value="八達通">八達通</option>
-                            <option value="電子支付">電子支付</option>
-                            <option value="其他">其他</option>
-                         </select>
+                           </select>
 
-                         <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                             儲存修改 <i class="fa-solid fa-save ml-1"></i>
-                         </button>
+                           <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                                 儲存修改 <i class="fa-solid fa-save ml-1"></i>
+                           </button>
                     </div>
                 </div>
             </section>
@@ -358,9 +359,9 @@
 
     // 🚩 數據修改區：行程與景點 🚩
     const FIXED_SCHEDULE = [
-        { id: 1, date: '12/25', tag: '啟程', desc: '抵港、check-in 香港家、旺角晚餐' },
-        { id: 2, date: '12/26', tag: '市區', desc: '中環大館、石板街、山頂纜車' },
-        { id: 3, date: '12/27', tag: '郊遊', desc: '大嶼山天壇大佛、大澳漁村' },
+        { id: 1, date: '12/25', tag: '香港', desc: '抵港、check-in 香港家、旺角晚餐' },
+        { id: 2, date: '12/26', tag: '深圳', desc: '中環大館、石板街、山頂纜車' },
+        { id: 3, date: '12/27', tag: '香港', desc: '大嶼山天壇大佛、大澳漁村' },
         { id: 4, date: '01/01', tag: '匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁' },
         { id: 5, date: '01/02', tag: '團體', desc: '香港迪士尼樂園全日遊' },
         { id: 6, date: '01/04', tag: '回程', desc: '送機、自由活動' }
@@ -406,7 +407,7 @@
             // landmarks 已移除
             const expenses = ref(initialExpenses);
             const newExpense = ref({ 
-                item: '', amount: null, currency: 'HKD', method: '現金', category: '吃' 
+                item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' 
             });
             const members = FIXED_MEMBERS;
             const wishlist = ref(initialWishlist);
@@ -435,7 +436,7 @@
                 if (!category) return '💡 其他'; 
                 
                 switch (category) {
-                    case '吃': return '🍽️ 吃';
+                    case '吃喝': return '🍽️ 吃喝';
                     case '交通': return '🚌 交通';
                     case '購物': return '🛍️ 購物';
                     case '門票': return '🎟️ 門票';
@@ -454,7 +455,7 @@
             
             // 🎯 計算各分類總支出 (Computed Property)
             const categoryTotals = computed(() => {
-                const totals = { '吃': 0, '交通': 0, '購物': 0, '門票': 0, '其他': 0 };
+                const totals = { '吃喝': 0, '交通': 0, '購物': 0, '門票': 0, '其他': 0 };
                 
                 expenses.value.forEach(exp => {
                     const twdAmount = convertToTWD(exp.amount, exp.currency);
@@ -489,7 +490,7 @@
                     });
                     
                     // 重設表單
-                    newExpense.value = { item: '', amount: null, currency: 'HKD', method: '現金', category: '吃' };
+                    newExpense.value = { item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' };
                 }
             }
 
@@ -498,7 +499,7 @@
                 item.isEditing = !item.isEditing; 
                 // 如果是儲存動作，確保 item 不為空 (給予類別名稱作為預設值)
                 if (!item.isEditing && !item.item) {
-                     item.item = item.category;
+                       item.item = item.category;
                 }
             }
 
