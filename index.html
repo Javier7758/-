@@ -46,7 +46,7 @@
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
-                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
+                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先登入，以同步您的行程資料。</div>
 
                 <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
                     <h3 class="font-bold text-orange-600 mb-3">新增行程</h3>
@@ -85,7 +85,7 @@
             </section>
 
             <section v-if="currentTab === 'landmarks'" class="space-y-4">
-                 <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
+                 <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先登入，以同步您的景點資料。</div>
                 
                 <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
                     <h3 class="font-bold text-orange-600 mb-3">新增景點</h3>
@@ -127,7 +127,7 @@
             </section>
 
             <section v-if="currentTab === 'finance'">
-                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
+                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先連線雲端，以同步您的記帳資料。</div>
 
                 <div class="bg-slate-900 text-white p-4 rounded-2xl mb-4 flex justify-between">
                     <div><p class="text-xs opacity-70">總支出 (HKD)</p><p class="text-2xl font-bold">${{ totalExpense }}</p></div>
@@ -177,6 +177,10 @@
                             <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.item }}</span>
                         </div>
                         <span v-if="selectedMember === '全部'" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ item.member }}</span>
+                        
+                        <button @click="deleteWishItem(item.id)" :disabled="!user" class="ml-3 text-red-500 disabled:opacity-50 hover:text-red-700">
+                            <i class="fa-solid fa-times text-xs"></i>
+                        </button>
                     </div>
                 </div>
                 <div v-else class="text-center text-slate-500 p-8 border border-dashed rounded-xl">
@@ -200,6 +204,7 @@
         storageBucket: "project-8464896306397913259.firebasestorage.app",
         messagingSenderId: "647207538830",
         appId: "1:647207538830:web:d1d5447961c615334179df"
+        measurementId: "G-VM8SF4Q9HE"
     };
 
     // 關鍵變數：群組 ID (所有資料都存在這個 ID 下)
@@ -390,13 +395,14 @@
                 }
             }
 
-            // --- 願望清單 ---
+            // --- 願望清單 CRUD ---
             const filteredWishlist = computed(() => {
                 if (selectedMember.value === '全部') {
                     return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
                 }
                 return wishlist.value.filter(item => item.member === selectedMember.value);
             });
+            
             function addWishItem() {
                 if (newWishItem.value.item && newWishItem.value.member && isLoggedIn.value) {
                     wishlist.value.push({ 
@@ -409,9 +415,17 @@
                     selectedMember.value = newWishItem.value.member;
                 }
             }
+            
+            // 刪除願望清單項目 (新增功能)
+            function deleteWishItem(id) {
+                if (isLoggedIn.value) {
+                    wishlist.value = wishlist.value.filter(item => item.id !== id);
+                }
+            }
+
 
             return { 
-                currentTab, user, signInWithGoogle: () => {}, signOut: () => {}, isLoggedIn, // 登入/登出功能被替換
+                currentTab, user, isLoggedIn,
                 // 行程
                 schedule, newScheduleItem, addScheduleItem, toggleEdit, deleteScheduleItem,
                 // 景點
@@ -419,7 +433,7 @@
                 // 記帳
                 expenses, newExpense, totalExpense, addExpense, 
                 // 願望清單
-                members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem
+                members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem, deleteWishItem
             };
         }
     }).mount('#app');
