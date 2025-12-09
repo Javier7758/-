@@ -16,7 +16,7 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-    <div id="app" class="max-w-md mx-auto min-h-screen pb-20 relative shadow-2xl bg-white">
+    <div id="app" class="max-w-md mx-auto min-h-screen pb-4 relative shadow-2xl bg-white">
         
         <header class="bg-slate-900 text-white p-6 rounded-b-3xl shadow-lg">
             <h1 class="text-2xl font-bold italic">跨年旅行 <span class="text-orange-500">2026</span></h1>
@@ -25,7 +25,6 @@
         
         <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
             <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
-            <button @click="currentTab = 'landmarks'" :class="{'tab-active': currentTab === 'landmarks'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-camera block text-lg mb-1"></i>景點</button>
             <button @click="currentTab = 'finance'" :class="{'tab-active': currentTab === 'finance'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-wallet block text-lg mb-1"></i>記帳</button>
             <button @click="currentTab = 'wishlist'" :class="{'tab-active': currentTab === 'wishlist'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-gift block text-lg mb-1"></i>願望</button>
             
@@ -33,6 +32,8 @@
                 <i class="fa-solid fa-cloud-sun block text-lg mb-1"></i>
                 天氣
             </a>
+            
+            <button @click="currentTab = 'essentials'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>須知</button>
         </nav>
 
         <main class="p-4">
@@ -47,17 +48,48 @@
                 </div>
             </section>
 
-            <section v-if="currentTab === 'landmarks'" class="space-y-4">
-                <div v-for="item in landmarks" :key="item.id" class="p-4 border rounded-2xl flex flex-col bg-white shadow-sm hover:shadow-md transition">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-bold text-slate-900">{{ item.name }}</h3>
-                            <p class="text-xs text-orange-600">{{ item.type }}</p>
-                        </div>
-                        <a :href="'http://googleusercontent.com/maps.google.com/search?q=' + item.name + '+香港'" target="_blank" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full hover:bg-slate-200">導航 <i class="fa-solid fa-location-arrow ml-1"></i></a>
+            <section v-if="currentTab === 'essentials'" class="space-y-6">
+                <h2 class="text-2xl font-bold text-slate-900 border-b pb-2">「行前須知」：重要資訊 💡</h2>
+                
+                <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
+                    <h3 class="font-bold text-blue-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
+                    <div class="space-y-1 text-sm text-slate-700">
+                        <p><span class="font-semibold text-slate-900">去程時間 (IT232):</span> 2026/12/25 09:00 - 10:45</p>
+                        <p><span class="font-semibold text-slate-900">回程時間 (IT233):</span> 2027/01/04 19:30 - 21:15</p>
+                        <p><span class="font-semibold text-slate-900">去程編號:</span> IT232 (虎航)</p>
+                        <p><span class="font-semibold text-slate-900">回程編號:</span> IT233 (虎航)</p>
                     </div>
-                    <p class="text-sm text-slate-600 mb-3">{{ item.desc }}</p>
                 </div>
+
+                <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
+                    <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿地址</h3>
+                    <p class="text-sm font-medium text-slate-900 mb-2">香港家 (Hong Kong Home)</p>
+                    <p class="text-sm text-slate-700">九龍旺角彌敦道777號</p>
+                    <a href="http://googleusercontent.com/maps.google.com/search?q=九龍旺角彌敦道777號" target="_blank" class="text-xs text-green-600 font-semibold hover:underline mt-2 inline-block">在 Google 地圖上查看 <i class="fa-solid fa-location-dot ml-1"></i></a>
+                </div>
+
+                <div class="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
+                    <h3 class="font-bold text-yellow-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-exclamation-circle mr-2"></i> 旅遊注意事項</h3>
+                    <ul class="list-disc list-inside text-sm space-y-1 text-slate-700">
+                        <li>**電源：** 香港使用三腳方型插頭 (G型)，電壓220V。請記得帶轉接頭。</li>
+                        <li>**入境：** 每人只可免稅攜帶19支香煙入境香港 。</li>
+                        <li>**天氣：** 12月至1月天氣較涼，請準備薄羽絨或厚外套。</li>
+                        <li>**備用：** 準備至少一張備用信用卡。</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
+                    <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話</h3>
+                    <div class="flex justify-around text-sm font-medium">
+                        <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
+                            🇭🇰 **香港：** <span class="font-black text-xl">999</span>
+                        </a>
+                        <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
+                            🇨🇳 **中國：** <span class="font-black text-xl">110 / 120 / 119</span>
+                        </a>
+                    </div>
+                </div>
+
             </section>
 
             <section v-if="currentTab === 'finance'">
@@ -238,19 +270,6 @@
 
         </main>
         
-        <div class="bg-red-600 text-white p-3 shadow-xl absolute bottom-0 w-full">
-            <p class="font-bold text-lg mb-1 flex items-center">
-                <i class="fa-solid fa-triangle-exclamation mr-2 text-yellow-300"></i> 緊急求助電話
-            </p>
-            <div class="flex justify-around text-sm font-medium">
-                <a href="tel:999" class="text-center hover:bg-red-700 p-1 rounded-md transition duration-150">
-                    🇭🇰 香港：<span class="font-black text-xl">999</span>
-                </a>
-                <a href="tel:110" class="text-center hover:bg-red-700 p-1 rounded-md transition duration-150">
-                    🇨🇳 中國：<span class="font-black text-xl">110 / 120 / 119</span>
-                </a>
-            </div>
-        </div>
         <div v-if="isStatsModalOpen" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
             <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -323,12 +342,7 @@
         { id: 6, date: '01/04', tag: '回程', desc: '送機、自由活動' }
     ];
     
-    const FIXED_LANDMARKS = [
-        { id: 1, name: '香港國際機場', type: '交通樞紐', desc: '作為入境和出境點' },
-        { id: 2, name: '香港迪士尼樂園', type: '遊樂景點', desc: '注意開園時間，提前訂票' },
-        { id: 3, name: '中環大館', type: '文化藝術', desc: '中環區的歷史建築群，拍照很好看' },
-        { id: 4, name: '太平山頂', type: '自然景觀', desc: '夜景最佳觀賞點，排隊時間長' }
-    ];
+    // 景點已移除
     
     const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
     
@@ -365,7 +379,7 @@
             
             // --- 數據結構 (Ref) ---
             const schedule = ref(FIXED_SCHEDULE);
-            const landmarks = ref(FIXED_LANDMARKS);
+            // landmarks 已移除
             const expenses = ref(initialExpenses);
             const newExpense = ref({ 
                 item: '', amount: null, currency: 'HKD', method: '現金', category: '吃' 
@@ -567,9 +581,8 @@
                 currentTab, 
                 isStatsModalOpen, 
                 openStatsModal, 
-                // 行程 & 景點 (只讀 - 來自 FIXED_*)
+                // 行程 (只讀 - 來自 FIXED_*)
                 schedule, 
-                landmarks,
                 // 記帳
                 expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD,
                 // 匯率計算
