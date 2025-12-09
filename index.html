@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 跨年旅行 | 雲端同步版 (全員可編輯)</title>
+    <title>2026 跨年旅行 | 雲端同步版 (匿名)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -24,17 +24,10 @@
             
             <div class="mt-2 flex justify-between items-center text-sm">
                 <p v-if="user" class="opacity-75">
-                    👋 {{ user.displayName }} 
-                    <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-500 text-white font-bold">已同步</span>
+                    ✅ 雲端連線成功 
+                    <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-500 text-white font-bold">自動同步中</span>
                 </p>
-                <p v-else class="text-yellow-400">🚨 未登入，資料無法同步</p>
-                
-                <button v-if="!user" @click="signInWithGoogle" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1 px-3 rounded-full text-xs transition">
-                    Google 登入同步
-                </button>
-                <button v-else @click="signOut" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full text-xs transition">
-                    登出
-                </button>
+                <p v-else class="text-yellow-400">🚨 正在嘗試連線...</p>
             </div>
             </header>
 
@@ -53,7 +46,7 @@
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
-                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先登入，以同步您的行程資料。</div>
+                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
 
                 <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
                     <h3 class="font-bold text-orange-600 mb-3">新增行程</h3>
@@ -92,7 +85,7 @@
             </section>
 
             <section v-if="currentTab === 'landmarks'" class="space-y-4">
-                 <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先登入，以同步您的景點資料。</div>
+                 <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
                 
                 <div class="bg-white p-4 rounded-2xl shadow-lg border border-orange-200">
                     <h3 class="font-bold text-orange-600 mb-3">新增景點</h3>
@@ -134,7 +127,7 @@
             </section>
 
             <section v-if="currentTab === 'finance'">
-                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先登入，以同步您的記帳資料。</div>
+                <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
 
                 <div class="bg-slate-900 text-white p-4 rounded-2xl mb-4 flex justify-between">
                     <div><p class="text-xs opacity-70">總支出 (HKD)</p><p class="text-2xl font-bold">${{ totalExpense }}</p></div>
@@ -160,7 +153,7 @@
             </section>
 
             <section v-if="currentTab === 'wishlist'" class="space-y-4">
-                 <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">請先登入，以同步您的願望清單。</div>
+                 <div v-if="!user" class="p-4 bg-yellow-100 text-yellow-700 rounded-xl text-center font-medium">正在連線雲端，請稍候...</div>
 
                 <div class="mb-4">
                     <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white shadow-md focus:ring-2 focus:ring-orange-500">
@@ -210,7 +203,7 @@
     };
 
     // 關鍵變數：群組 ID (所有資料都存在這個 ID 下)
-    const GROUP_ID = "HK2026_TRIP"; // ⚠️ 請自行定義一個固定的群組 ID
+    const GROUP_ID = "HK2026_TRIP"; 
 
     // 初始化 Firebase 和服務
     const app = firebase.initializeApp(firebaseConfig);
@@ -261,7 +254,6 @@
             })
             .catch(error => {
                 console.error("讀取 Firestore 失敗:", error);
-                alert("讀取雲端資料失敗，請檢查網路或 Firebase Rules！");
             });
     }
 
@@ -286,7 +278,6 @@
         })
         .catch((error) => {
             console.error("寫入 Firestore 失敗:", error);
-            alert("雲端寫入失敗！請確認 Firebase Rules 設定。");
         });
     }
 
@@ -304,26 +295,23 @@
             const user = ref(null); // 雲端登入狀態
             const isLoggedIn = computed(() => user.value !== null);
             
-            // --- 登入/登出功能 ---
-            function signInWithGoogle() {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithPopup(provider)
-                    .then(() => { console.log("Google 登入成功"); })
-                    .catch((error) => { console.error("登入失敗:", error); });
-            }
-
-            function signOut() {
-                auth.signOut().then(() => {
-                    user.value = null;
-                    console.log("登出成功");
-                });
-            }
-
+            // --- 登入/登出功能 (自動匿名登入) ---
+            
             // 監聽登入狀態並觸發資料載入
             auth.onAuthStateChanged((currentUser) => {
-                user.value = currentUser;
                 if (currentUser) {
+                    user.value = currentUser;
                     loadAllDataFromFirestore(); 
+                } else {
+                    // 如果沒有用戶，則觸發匿名登入
+                    auth.signInAnonymously()
+                        .then((result) => {
+                            user.value = result.user; // result.user 是匿名用戶
+                            loadAllDataFromFirestore();
+                        })
+                        .catch((error) => {
+                            console.error("匿名登入失敗:", error);
+                        });
                 }
             });
 
@@ -423,7 +411,7 @@
             }
 
             return { 
-                currentTab, user, signInWithGoogle, signOut, isLoggedIn,
+                currentTab, user, signInWithGoogle: () => {}, signOut: () => {}, isLoggedIn, // 登入/登出功能被替換
                 // 行程
                 schedule, newScheduleItem, addScheduleItem, toggleEdit, deleteScheduleItem,
                 // 景點
