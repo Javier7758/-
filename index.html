@@ -13,6 +13,40 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
         .fa-solid { margin-right: 5px; } 
+
+        /* 【香港背景：紫色系】 */
+        .card-bg-HK { 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), 
+            url('https://dummyimage.com/600x80/6a0dad/ffffff&text=Hong+Kong'); /* 紫色 */
+            background-size: cover; 
+            background-position: center;
+        }
+        
+        /* 深圳背景：綠色系 */
+        .card-bg-SZ { 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/004d40/ffffff&text=Shenzhen'); /* 深綠色 */
+            background-size: cover; 
+            background-position: center;
+        }
+
+        /* 【廣州背景：藍色系】 */
+        .card-bg-GZ { 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/1a73e8/ffffff&text=Guangzhou'); /* 藍色 */
+            background-size: cover; 
+            background-position: center;
+        }
+
+        .card-bg-default {
+            background-color: #374151; /* slate-700 fallback */
+        }
+        
+        .weather-info {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -58,12 +92,26 @@
                         請輸入金額以開始計算
                     </p>
                 </div>
-                <div v-for="day in schedule" :key="day.id" class="border-l-4 border-orange-500 pl-4 py-2 relative bg-white rounded-r-xl p-3 shadow-md hover:shadow-lg transition">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-slate-900">{{ day.date }}</span>
-                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ day.tag }}</span>
+                <div v-for="day in schedule" :key="day.id" class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl">
+                    
+                    <div :class="`card-bg-${day.city_code}`"
+                         class="h-16 w-full flex justify-between items-center p-3 text-white">
+                        
+                        <span class="text-xl font-extrabold tracking-wider">{{ day.city }}</span>
+                        
+                        <div class="weather-info">
+                            <i :class="getWeatherIcon(day.weather)" class="fa-solid mr-1 text-yellow-300 text-lg"></i>
+                            <div class="flex flex-col items-end leading-none">
+                                <span class="font-bold text-sm">{{ day.weather }}</span>
+                                <span class="text-xs opacity-90">{{ day.temp }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-600">{{ day.desc }}</p>
+
+                    <div class="p-3 border-l-4 border-orange-500 bg-white">
+                        <span class="text-lg font-extrabold text-slate-800 block mb-1">{{ day.date }}</span>
+                        <p class="text-sm text-slate-700">{{ day.desc }}</p>
+                    </div>
                 </div>
             </section>
 
@@ -137,6 +185,7 @@
 
             <section v-if="currentTab === 'finance'">
                 
+                
                 <div @click="openStatsModal" class="bg-slate-900 text-white p-4 rounded-2xl mb-4 shadow-lg cursor-pointer transition duration-150 hover:bg-slate-800">
                     <p class="text-xs opacity-70 flex justify-between items-center">
                         總支出 (TWD)
@@ -168,11 +217,11 @@
                     
                     <div class="flex gap-2">
                            <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                                <option value="吃喝"><i class="fa-solid fa-utensils"></i> 吃喝</option>
-                                <option value="交通"><i class="fa-solid fa-bus"></i> 交通</option>
-                                <option value="購物"><i class="fa-solid fa-bag-shopping"></i> 購物</option>
-                                <option value="門票"><i class="fa-solid fa-ticket"></i> 門票</option>
-                                <option value="其他"><i class="fa-solid fa-ellipsis-h"></i> 其他</option>
+                                <option value="吃喝">吃喝</option>
+                                <option value="交通">交通</option>
+                                <option value="購物">購物</option>
+                                <option value="門票">門票</option>
+                                <option value="其他">其他</option>
                             </select>
                             <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
                             <select v-model="newExpense.currency" class="w-20 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
@@ -183,11 +232,11 @@
                     </div>
 
                     <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                        <option value="現金"><i class="fa-solid fa-money-bill-wave"></i> 現金</option>
-                        <option value="信用卡"><i class="fa-solid fa-credit-card"></i> 信用卡</option>
-                        <option value="八達通"><i class="fa-solid fa-train"></i> 八達通</option>
-                        <option value="電子支付"><i class="fa-solid fa-qrcode"></i> 電子支付</option>
-                        <option value="其他"><i class="fa-solid fa-ellipsis-h"></i> 其他</option>
+                        <option value="現金">現金</option>
+                        <option value="信用卡">信用卡</option>
+                        <option value="八達通">八達通</option>
+                        <option value="電子支付">電子支付</option>
+                        <option value="其他">其他</option>
                     </select>
                     <button @click="addExpense" :disabled="!newExpense.amount" class="w-full bg-orange-500 disabled:opacity-50 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
                 </div>
@@ -359,12 +408,20 @@
 
     // 🚩 數據修改區：行程與景點 🚩
     const FIXED_SCHEDULE = [
-        { id: 1, date: '12/25', tag: '香港', desc: '抵港、check-in 香港家、旺角晚餐' },
-        { id: 2, date: '12/26', tag: '深圳', desc: '中環大館、石板街、山頂纜車' },
-        { id: 3, date: '12/27', tag: '香港', desc: '大嶼山天壇大佛、大澳漁村' },
-        { id: 4, date: '01/01', tag: '匯合', desc: '到機場接爸媽 & 弟弟、尖沙咀海旁' },
-        { id: 5, date: '01/02', tag: '團體', desc: '香港迪士尼樂園全日遊' },
-        { id: 6, date: '01/04', tag: '回程', desc: '送機、自由活動' }
+        // **根據使用者提供的城市順序 25香港 -> 4香港 重新編排**
+        // 為了讓行程內容具有連貫性，我盡量保留了之前的描述，並為新增的廣州和重複的城市填寫了新的描述。
+        // id 不變，但順序變了
+        { id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '抵港、check-in 香港家、旺角晚餐', weather: '晴時多雲', temp: '18°C / 13°C' },
+        { id: 2, date: '12/26', city: '深圳', city_code: 'SZ', desc: '前往深圳、華僑城創意文化園、晚餐後羅湖口岸過境回港', weather: '晴朗', temp: '20°C / 15°C' },
+        { id: 3, date: '12/27', city: '香港', city_code: 'HK', desc: '大嶼山天壇大佛、大澳漁村', weather: '多雲', temp: '16°C / 11°C' },
+        { id: 7, date: '12/28', city: '廣州', city_code: 'GZ', desc: '搭乘廣九直通車至廣州、越秀公園、廣州塔夜景', weather: '大雨', temp: '15°C / 10°C' }, 
+        { id: 8, date: '12/29', city: '廣州', city_code: 'GZ', desc: '沙面島異國建築群、荔枝灣湧、晚餐體驗粵式點心', weather: '晴時多雲', temp: '16°C / 11°C' }, 
+        { id: 9, date: '12/30', city: '深圳', city_code: 'SZ', desc: '高鐵返回深圳、世界之窗主題樂園一日遊', weather: '多雲', temp: '19°C / 14°C' },
+        { id: 10, date: '12/31', city: '香港', city_code: 'HK', desc: '尖沙咀海旁或維多利亞港跨年倒數（重點行程）', weather: '晴朗', temp: '17°C / 12°C' },
+        { id: 11, date: '01/01', city: '深圳', city_code: 'SZ', desc: '新年第一天：深圳歡樂海岸水秀劇場、自由購物', weather: '小雨', temp: '18°C / 13°C' },
+        { id: 4, date: '01/02', city: '香港', city_code: 'HK', desc: '香港迪士尼樂園全日遊', weather: '晴時多雲', temp: '17°C / 12°C' },
+        { id: 5, date: '01/03', city: '香港', city_code: 'HK', desc: '中環大館、石板街、山頂纜車', weather: '多雲', temp: '16°C / 11°C' },
+        { id: 6, date: '01/04', city: '香港', city_code: 'HK', desc: '最後採買、前往機場搭乘長榮BR868回程', weather: '晴朗', temp: '19°C / 14°C' }
     ];
     
     // 景點已移除
@@ -395,6 +452,31 @@
     ];
     
     let expenseChartInstance = null;
+    
+    // =======================================================
+    // 💡 方便手動更新天氣的 Font Awesome 圖標類備註 💡
+    /*
+    ** Font Awesome 天氣圖標參考 (請在 getWeatherIcon 函式中或直接在模板中替換 fa-xxx 部分): **
+    
+    --- 太陽/晴朗 ---
+    * 晴天 / 大太陽: `fa-sun`
+    * 晴時多雲 / 局部多雲: `fa-cloud-sun`
+    
+    --- 雲/陰天 ---
+    * 多雲 / 陰天: `fa-cloud`
+    * 濃霧 / 霧霾: `fa-smog`
+    
+    --- 降雨 ---
+    * 小雨 / 陣雨: `fa-cloud-rain`
+    * 大雨 / 暴雨: `fa-cloud-showers-heavy`
+    * 雷雨 / 打雷: `fa-bolt`
+    
+    --- 其他 ---
+    * 下雪: `fa-snowflake`
+    * 風: `fa-wind`
+    * 未知: `fa-question-circle`
+    */
+    // =======================================================
 
 
     createApp({
@@ -419,6 +501,16 @@
             // =======================================================
             // 🚩 核心邏輯區 🚩
             // =======================================================
+            
+            // 💡 根據天氣描述返回 Font Awesome 圖示
+            function getWeatherIcon(weather) {
+                if (!weather) return 'fa-question-circle';
+                if (weather.includes('晴') && !weather.includes('多雲')) return 'fa-sun'; // 調整：單純的晴朗用太陽
+                if (weather.includes('晴時多雲')) return 'fa-cloud-sun'; 
+                if (weather.includes('雨') || weather.includes('大雨')) return 'fa-cloud-rain';
+                if (weather.includes('多雲') || weather.includes('陰')) return 'fa-cloud';
+                return 'fa-cloud-sun'; // 預設值
+            }
             
             // 💰 匯率轉換函式 (從任何幣別轉 TWD)
             function convertToTWD(amount, currency) {
@@ -607,7 +699,7 @@
                 isStatsModalOpen, 
                 openStatsModal, 
                 // 行程 (只讀 - 來自 FIXED_*)
-                schedule, 
+                schedule, getWeatherIcon, // 新增 getWeatherIcon
                 // 記帳
                 expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD,
                 // 匯率計算
