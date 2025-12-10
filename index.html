@@ -47,6 +47,17 @@
             text-align: right;
             margin-left: auto;
         }
+
+        /* 景點連結樣式 */
+        .detail-link {
+            font-weight: bold;
+            color: #1a73e8; /* 藍色 */
+            transition: color 0.15s;
+        }
+        .detail-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -92,7 +103,7 @@
                         請輸入金額以開始計算
                     </p>
                 </div>
-                <div v-for="day in schedule" :key="day.id" class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl">
+                <div v-for="day in schedule" :key="day.id" @click="showDetails(day)" class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl cursor-pointer">
                     
                     <div :class="`card-bg-${day.city_code}`"
                          class="h-16 w-full flex justify-between items-center p-3 text-white">
@@ -110,7 +121,7 @@
 
                     <div class="p-3 border-l-4 border-orange-500 bg-white">
                         <span class="text-lg font-extrabold text-slate-800 block mb-1">{{ day.date }}</span>
-                        <p class="text-sm text-slate-700">{{ day.desc }}</p>
+                        <p class="text-sm text-slate-700 truncate">{{ day.desc }}</p>
                     </div>
                 </div>
             </section>
@@ -124,8 +135,8 @@
             按此於起飛前48至1小時辦理網上報到
         </a>
         <hr class="border-green-300">
-        <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50)</p>
-        <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20)</p>
+        <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50) (女友家人)</p>
+        <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20) (全員)</p>
     </div>
 </div>
 
@@ -369,6 +380,48 @@
             </div>
         </div>
 
+        <div v-if="isDetailModalOpen && selectedDayDetails" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">
+                        {{ selectedDayDetails.city }} - {{ selectedDayDetails.date }} 詳情
+                    </h3>
+                    <button @click="isDetailModalOpen = false" class="text-gray-500 hover:text-gray-800">
+                        <i class="fa-solid fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <p class="text-sm text-slate-600 mb-4">{{ selectedDayDetails.summary }}</p>
+                    
+                    <h4 class="font-bold text-orange-600 text-lg border-b pb-1 mb-3">當日行程點</h4>
+                    
+                    <div v-for="(item, index) in selectedDayDetails.details" :key="index" class="p-3 border-l-4 border-slate-200 hover:bg-slate-50 transition duration-150">
+                        <p class="font-bold text-slate-800 mb-1 flex items-start text-sm">
+                            <i class="fa-solid fa-location-dot mr-2 mt-1 text-orange-500 flex-shrink-0"></i> 
+                            <span class="flex-grow">
+                                <span v-if="item.time" class="text-slate-500 font-normal mr-1">{{ item.time }}:</span>
+                                
+                                <a v-if="item.link" :href="item.link" target="_blank" class="detail-link">
+                                    {{ item.name }} 
+                                    <i class="fa-solid fa-external-link-alt text-xs ml-1"></i>
+                                </a>
+                                <span v-else class="font-medium">{{ item.name }}</span>
+                            </span>
+                        </p>
+                        <p v-if="item.note" class="text-xs text-slate-500 ml-5">{{ item.note }}</p>
+                    </div>
+
+                    <div class="text-center pt-4">
+                         <button @click="isDetailModalOpen = false" class="w-full bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300 transition">
+                                關閉
+                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 <script>
     const { createApp, ref, computed, watch, nextTick } = Vue;
@@ -397,6 +450,7 @@
     }
 
     function saveData(key, list) {
+        // 儲存前移除 UI 狀態（isEditing）
         const cleanedList = list.map(({ isEditing, ...rest }) => rest);
         localStorage.setItem(key, JSON.stringify(cleanedList));
     }
@@ -408,20 +462,116 @@
 
     // 🚩 數據修改區：行程與景點 🚩
     const FIXED_SCHEDULE = [
-        // **根據使用者提供的城市順序 25香港 -> 4香港 重新編排**
-        // 為了讓行程內容具有連貫性，我盡量保留了之前的描述，並為新增的廣州和重複的城市填寫了新的描述。
-        // id 不變，但順序變了
-        { id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '抵港、check-in 香港家、旺角晚餐', weather: '晴時多雲', temp: '18°C / 13°C' },
-        { id: 2, date: '12/26', city: '深圳', city_code: 'SZ', desc: '前往深圳、華僑城創意文化園、晚餐後羅湖口岸過境回港', weather: '晴朗', temp: '20°C / 15°C' },
-        { id: 3, date: '12/27', city: '香港', city_code: 'HK', desc: '大嶼山天壇大佛、大澳漁村', weather: '多雲', temp: '16°C / 11°C' },
-        { id: 7, date: '12/28', city: '廣州', city_code: 'GZ', desc: '搭乘廣九直通車至廣州、越秀公園、廣州塔夜景', weather: '大雨', temp: '15°C / 10°C' }, 
-        { id: 8, date: '12/29', city: '廣州', city_code: 'GZ', desc: '沙面島異國建築群、荔枝灣湧、晚餐體驗粵式點心', weather: '晴時多雲', temp: '16°C / 11°C' }, 
-        { id: 9, date: '12/30', city: '深圳', city_code: 'SZ', desc: '高鐵返回深圳、世界之窗主題樂園一日遊', weather: '多雲', temp: '19°C / 14°C' },
-        { id: 10, date: '12/31', city: '香港', city_code: 'HK', desc: '尖沙咀海旁或維多利亞港跨年倒數（重點行程）', weather: '晴朗', temp: '17°C / 12°C' },
-        { id: 11, date: '01/01', city: '深圳', city_code: 'SZ', desc: '新年第一天：深圳歡樂海岸水秀劇場、自由購物', weather: '小雨', temp: '18°C / 13°C' },
-        { id: 4, date: '01/02', city: '香港', city_code: 'HK', desc: '香港迪士尼樂園全日遊', weather: '晴時多雲', temp: '17°C / 12°C' },
-        { id: 5, date: '01/03', city: '香港', city_code: 'HK', desc: '中環大館、石板街、山頂纜車', weather: '多雲', temp: '16°C / 11°C' },
-        { id: 6, date: '01/04', city: '香港', city_code: 'HK', desc: '最後採買、前往機場搭乘長榮BR868回程', weather: '晴朗', temp: '19°C / 14°C' }
+        // ** 12/25 ~ 12/31: 兩人行程 (備註中說明) **
+        { 
+            id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '抵港、check-in、旺角晚餐', weather: '晴時多雲', temp: '18°C / 13°C',
+            summary: '聖誕節抵達香港，先安頓好，晚上在熱鬧的旺角感受節日氣氛。',
+            details: [
+                { name: '抵達香港國際機場', time: '14:00', note: '兩人各自前往香港君立飯店' },
+                { name: '君立飯店 (Camlux Hotel) Check-in', time: '16:00', link: 'https://tw.trip.com/hotels/hong-kong-hotel-detail-7114825/camlux-hotel/' },
+                { name: '旺角/油麻地晚餐', time: '19:30', note: '嘗試地道港式小吃或茶餐廳' },
+            ]
+        },
+        { 
+            id: 2, date: '12/26', city: '深圳', city_code: 'SZ', desc: '華僑城創意園、羅湖口岸過境回港', weather: '晴朗', temp: '20°C / 15°C',
+            summary: '前往深圳體驗創意園區，晚上從羅湖口岸返回香港住宿。',
+            details: [
+                { name: '從羅湖/福田口岸入境深圳', time: '09:00', note: '注意證件及通關時間' },
+                { name: '華僑城創意文化園 (OCT Loft)', time: '11:00', link: 'https://zh.wikipedia.org/wiki/%E5%8D%8E%E4%BE%A8%E5%9F%8E%E5%89%B5%E6%84%8F%E6%96%87%E5%8C%96%E5%9C%92' },
+                { name: '深圳午餐', time: '13:30', note: '園區內或附近餐廳' },
+                { name: '羅湖口岸出境回港', time: '18:00', note: '避免晚間高峰期' },
+            ]
+        },
+        { 
+            id: 3, date: '12/27', city: '香港', city_code: 'HK', desc: '大嶼山、天壇大佛、大澳漁村', weather: '多雲', temp: '16°C / 11°C',
+            summary: '一天的大嶼山探索，搭乘昂坪纜車，探訪天壇大佛與水上棚屋。',
+            details: [
+                { name: '前往東涌纜車站', time: '09:30', note: '建議購買來回纜車票' },
+                { name: '天壇大佛與寶蓮禪寺', time: '11:00', note: '午餐可考慮在寶蓮禪寺享用素食' },
+                { name: '大澳漁村', time: '15:00', link: 'https://zh.wikipedia.org/wiki/%E5%A4%A7%E6%BE%B3' },
+                { name: '返回市區', time: '18:30', note: '可從大澳搭巴士回東涌再轉地鐵' },
+            ]
+        },
+        { 
+            id: 7, date: '12/28', city: '廣州', city_code: 'GZ', desc: '搭車至廣州、越秀公園、廣州塔夜景', weather: '大雨', temp: '15°C / 10°C',
+            summary: '從香港前往廣州體驗歷史和現代地標。',
+            details: [
+                { name: '從紅磡站搭乘廣九直通車', time: '09:00', note: '或搭高鐵至廣州東站/南站' },
+                { name: '廣州住宿 Check-in', time: '13:00', note: '建議在天河區或越秀區' },
+                { name: '越秀公園與五羊石像', time: '15:30', link: 'https://zh.wikipedia.org/wiki/%E8%B6%8A%E7%A7%80%E5%85%AC%E5%9C%92' },
+                { name: '廣州塔 (小蠻腰)', time: '19:00', note: '觀賞珠江新城夜景' },
+            ]
+        }, 
+        { 
+            id: 8, date: '12/29', city: '廣州', city_code: 'GZ', desc: '沙面島、荔枝灣湧、粵式點心', weather: '晴時多雲', temp: '16°C / 11°C',
+            summary: '在廣州老城區感受歷史，品嚐地道的廣州美食。',
+            details: [
+                { name: '沙面島異國建築群', time: '10:00', link: 'https://zh.wikipedia.org/wiki/%E6%B2%99%E9%9D%A2%E5%B3%B6' },
+                { name: '荔枝灣湧/永慶坊', time: '13:00', note: '體驗西關文化，安排午餐' },
+                { name: '晚餐：地道粵式點心/酒樓', time: '19:00', note: '推薦陶陶居或廣州酒家' },
+            ]
+        }, 
+        { 
+            id: 9, date: '12/30', city: '深圳', city_code: 'SZ', desc: '返回深圳、世界之窗主題樂園', weather: '多雲', temp: '19°C / 14°C',
+            summary: '從廣州返回深圳，在大型主題公園世界之窗度過一天。',
+            details: [
+                { name: '高鐵/直通車返回深圳', time: '10:00', note: '返回深圳住宿 check-in' },
+                { name: '世界之窗主題樂園', time: '13:00', link: 'https://zh.wikipedia.org/wiki/%E4%B8%96%E7%95%8C%E4%B9%8B%E7%AA%97_(%E6%B7%B1%E5%9C%B3)' },
+                { name: '觀賞晚間表演與燈光秀', time: '19:30', note: '樂園內晚餐' },
+            ]
+        },
+        { 
+            id: 10, date: '12/31', city: '香港', city_code: 'HK', desc: '維港跨年倒數（重點行程）', weather: '晴朗', temp: '17°C / 12°C',
+            summary: '跨年夜當晚，返回香港準備在維多利亞港迎新。',
+            details: [
+                { name: '從深圳口岸過境至香港', time: '14:00', note: '準備跨年夜人潮，提早出發' },
+                { name: '尖沙咀海旁準備佔位', time: '19:00', note: '尋找最佳觀賞煙火位置' },
+                { name: '維多利亞港跨年倒數', time: '23:30', note: '午夜 12 點煙火秀 (注意散場人潮)' },
+            ]
+        },
+        
+        // ** 01/01: 接機日 **
+        { 
+            id: 11, date: '01/01', city: '深圳', city_code: 'SZ', desc: '前往機場接爸媽與弟弟、入住深圳住宿', weather: '小雨', temp: '18°C / 13°C',
+            summary: '新年第一天，前往機場迎接女友家人，開始五人團體行程。',
+            details: [
+                { name: '前往香港國際機場 (HKIA)', time: '09:00', note: '女友家人班機 BR867 09:50 抵達' },
+                { name: '接機與會合', time: '12:00', note: '午餐可在機場或東涌解決' },
+                { name: '前往深圳邦拓美諾行政公寓', time: '15:00', note: '入住並安頓家人，準備五人住宿' },
+                { name: '深圳晚餐與家庭聚餐', time: '19:00', note: '歡迎晚宴' },
+            ]
+        }, 
+        
+        // ** 01/02 ~ 01/04: 五人團體行程 **
+        { 
+            id: 4, date: '01/02', city: '香港', city_code: 'HK', desc: '香港迪士尼樂園全日遊', weather: '晴時多雲', temp: '17°C / 12°C',
+            summary: '全員前往香港迪士尼樂園，盡情遊玩一天。',
+            details: [
+                { name: '從深圳前往香港迪士尼', time: '08:00', note: '過境後轉乘地鐵至欣澳站' },
+                { name: '香港迪士尼樂園', time: '10:30', link: 'https://www.hongkongdisneyland.com/' },
+                { name: '觀看夜間巡遊和煙火秀', time: '19:30', note: '確認當天表演時間' },
+                { name: '返回深圳住宿', time: '21:30', note: '搭地鐵轉口岸回深圳' },
+            ]
+        },
+        { 
+            id: 5, date: '01/03', city: '香港', city_code: 'HK', desc: '中環大館、石板街、山頂纜車', weather: '多雲', temp: '16°C / 11°C',
+            summary: '探索香港中環的歷史和現代風景。',
+            details: [
+                { name: '中環大館（舊中區警署建築群）', time: '10:00', link: 'https://zh.wikipedia.org/wiki/%E5%A4%A7%E9%A4%A8' },
+                { name: '石板街（砵典乍街）', time: '12:00', note: '拍照留念' },
+                { name: '午餐：中環/上環地區', time: '13:00', note: '嘗試著名的蘭芳園或鏞記酒家' },
+                { name: '山頂纜車與太平山頂', time: '15:30', note: '欣賞維多利亞港全景' },
+            ]
+        },
+        { 
+            id: 6, date: '01/04', city: '香港', city_code: 'HK', desc: '最後採買、送機 (全員回程)', weather: '晴朗', temp: '19°C / 14°C',
+            summary: '旅行的最後一天，進行少量採買後，全員前往機場搭機回程。',
+            details: [
+                { name: '香港市區自由活動與最後採買', time: '09:00', note: '可去尖沙咀或銅鑼灣購物' },
+                { name: '前往香港國際機場 (HKIA)', time: '11:00', note: '預留充足時間辦理退稅和出境手續' },
+                { name: '長榮 BR868 登機', time: '13:30', note: '結束愉快的跨年之旅' },
+            ]
+        }
     ];
     
     // 景點已移除
@@ -483,9 +633,12 @@
         setup() {
             const currentTab = ref('itinerary'); 
             const isStatsModalOpen = ref(false); 
+            const isDetailModalOpen = ref(false); // 啟用詳情彈窗狀態
+            const selectedDayDetails = ref(null);  // 儲存選中的行程細節數據
             
             // --- 數據結構 (Ref) ---
             const schedule = ref(FIXED_SCHEDULE);
+            
             // landmarks 已移除
             const expenses = ref(initialExpenses);
             const newExpense = ref({ 
@@ -505,11 +658,17 @@
             // 💡 根據天氣描述返回 Font Awesome 圖示
             function getWeatherIcon(weather) {
                 if (!weather) return 'fa-question-circle';
-                if (weather.includes('晴') && !weather.includes('多雲')) return 'fa-sun'; // 調整：單純的晴朗用太陽
+                if (weather.includes('晴') && !weather.includes('多雲')) return 'fa-sun'; 
                 if (weather.includes('晴時多雲')) return 'fa-cloud-sun'; 
                 if (weather.includes('雨') || weather.includes('大雨')) return 'fa-cloud-rain';
                 if (weather.includes('多雲') || weather.includes('陰')) return 'fa-cloud';
-                return 'fa-cloud-sun'; // 預設值
+                return 'fa-cloud-sun'; 
+            }
+
+            // 💡 顯示行程詳情彈窗
+            function showDetails(day) {
+                selectedDayDetails.value = day;
+                isDetailModalOpen.value = true;
             }
             
             // 💰 匯率轉換函式 (從任何幣別轉 TWD)
@@ -697,9 +856,12 @@
             return { 
                 currentTab, 
                 isStatsModalOpen, 
+                isDetailModalOpen, 
+                selectedDayDetails, 
                 openStatsModal, 
+                showDetails, 
                 // 行程 (只讀 - 來自 FIXED_*)
-                schedule, getWeatherIcon, // 新增 getWeatherIcon
+                schedule, getWeatherIcon, 
                 // 記帳
                 expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD,
                 // 匯率計算
