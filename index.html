@@ -254,15 +254,15 @@
                     </div>
                     
                     <div class="flex gap-2">
-                            <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                            <select v-model="newExpense.category" class="w-1/3 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
                                 <option value="吃喝">吃喝</option>
                                 <option value="交通">交通</option>
                                 <option value="購物">購物</option>
                                 <option value="門票">門票</option>
                                 <option value="其他">其他</option>
                             </select>
-                            <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                            <select v-model="newExpense.currency" class="w-20 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                            <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="w-1/3 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500 text-right">
+                            <select v-model="newExpense.currency" class="w-1/4 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
                                 <option value="HKD">HKD</option>
                                 <option value="RMB">RMB</option>
                                 <option value="TWD">TWD</option>
@@ -317,14 +317,14 @@
                             </div>
 
                             <div class="flex gap-2 mb-2">
-                                 <select v-model="exp.category" class="flex-1 p-2 border rounded-lg text-sm bg-white">
+                                 <select v-model="exp.category" class="w-1/3 p-2 border rounded-lg text-sm bg-white">
                                      <option value="吃喝">吃喝</option>
                                      <option value="交通">交通</option>
                                      <option value="購物">購物</option>
                                      <option value="門票">門票</option>
                                      <option value="其他">其他</option>
                                  </select>
-                                 <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
+                                 <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 text-right">
                                   <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
                                       <option value="HKD">HKD</option>
                                       <option value="RMB">RMB</option>
@@ -663,7 +663,7 @@
     ];
     
     // ** FIXED_MEMBERS 保持原狀 (不修改) **
-    const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛']; 
+    const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
     const defaultExpenses = []; 
     // ** defaultWishlist 保持原狀 (不修改) **
     const defaultWishlist = [{ id: 1, member: '橞宜', item: '小熊維尼公仔', done: false }];
@@ -746,7 +746,7 @@
             const members = FIXED_MEMBERS;
             const wishlist = ref(initialWishlist);
             const selectedMember = ref('全部'); 
-            const newWishItem = ref({ member: '橞宜', item: '' }); // 保持原狀
+            const newWishItem = ref({ member: '橞宜', item: '' }); 
             const calculator = ref({ amount: null, currency: 'HKD' });
 
 
