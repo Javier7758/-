@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 跨年旅行 | 本地儲存版 (極簡)</title>
+    <title>2025-2026 跨年旅行 | 本地儲存版 (極簡)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -46,6 +46,8 @@
             font-size: 0.8rem;
             text-align: right;
             margin-left: auto;
+            /* 修正：為天氣區增加一些左邊距，確保不與城市名稱重疊 */
+            padding-left: 8px; 
         }
 
         /* 景點連結樣式 */
@@ -63,9 +65,25 @@
 <body class="bg-slate-50 text-slate-900">
     <div id="app" class="max-w-md mx-auto min-h-screen pb-4 relative shadow-2xl bg-white">
         
-        <header class="bg-slate-900 text-white p-6 rounded-b-3xl shadow-lg">
-            <h1 class="text-2xl font-bold italic">跨年旅行 <span class="text-orange-500">2026</span></h1>
-            <p class="text-sm opacity-75">數據已儲存於您的裝置，無需登入</p>
+        <header class="bg-slate-900 text-white p-4 rounded-b-3xl shadow-lg">
+            <div class="flex justify-between items-start mb-1">
+                <div>
+                    <h1 class="text-xl font-bold italic">跨年旅行 <span class="text-orange-500">2025-2026</span></h1>
+                    <p class="text-xs opacity-75">數據已儲存於您的裝置，無需登入</p>
+                </div>
+                
+                <div class="text-right text-sm">
+                    <p class="font-bold text-orange-400">{{ currentFullDate }}</p>
+                    <p class="font-light text-xl leading-none">{{ currentTime }}</p>
+                    
+                    <div v-if="todayHeaderWeather" class="flex items-center justify-end opacity-90 mt-1 space-x-1">
+                        <i :class="getWeatherIcon(todayHeaderWeather.weather)" class="fa-solid text-yellow-300 text-sm"></i>
+                        <span class="text-xs font-medium">{{ todayHeaderWeather.weather }}</span>
+                        <span class="text-xs opacity-75">({{ todayHeaderWeather.city }})</span>
+                    </div>
+                    <div v-else class="h-4"></div> 
+                </div>
+            </div>
         </header>
         
         <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
@@ -90,8 +108,8 @@
                         匯率計算機 (TWD) <i class="fa-solid fa-calculator"></i>
                     </h3>
                     <div class="flex gap-2 mb-3">
-                        <input v-model.number="calculator.amount" type="number" placeholder="輸入金額" class="flex-1 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                        <select v-model="calculator.currency" class="p-3 border rounded-xl text-sm bg-white">
+                        <input v-model.number="calculator.amount" type="number" placeholder="輸入金額" class="w-1/2 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        <select v-model="calculator.currency" class="w-1/2 p-3 border rounded-xl text-sm bg-white">
                             <option value="HKD">HKD (港幣1:4)</option>
                             <option value="RMB">RMB (人民幣1:4.4)</option>
                         </select>
@@ -103,12 +121,20 @@
                         請輸入金額以開始計算
                     </p>
                 </div>
-                <div v-for="day in schedule" :key="day.id" @click="showDetails(day)" class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl cursor-pointer">
+                <div v-for="day in orderedSchedule" :key="day.id" @click="showDetails(day)" 
+                    class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl cursor-pointer relative"
+                    :class="{
+                        'ring-4 ring-red-500/70 shadow-2xl bg-yellow-50': day.isToday
+                    }"> 
                     
+                    <div v-if="day.isToday" class="absolute top-0 left-0 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-br-xl z-10">
+                        📌 今日行程
+                    </div>
+
                     <div :class="`card-bg-${day.city_code}`"
-                         class="h-16 w-full flex justify-between items-center p-3 text-white">
+                        class="h-16 w-full flex justify-between items-center p-3 text-white">
                         
-                        <span class="text-xl font-extrabold tracking-wider">{{ day.city }}</span>
+                        <span class="text-xl font-extrabold tracking-wider mr-2">{{ day.city }}</span>
                         
                         <div class="weather-info">
                             <i :class="getWeatherIcon(day.weather)" class="fa-solid mr-1 text-yellow-300 text-lg"></i>
@@ -119,7 +145,7 @@
                         </div>
                     </div>
 
-                    <div class="p-3 border-l-4 border-orange-500 bg-white">
+                    <div class="p-3 border-l-4 border-orange-500"> 
                         <span class="text-lg font-extrabold text-slate-800 block mb-1">{{ day.date }}</span>
                         <p class="text-sm text-slate-700 truncate">{{ day.desc }}</p>
                     </div>
@@ -129,16 +155,16 @@
             <section v-if="currentTab === 'essentials'" class="space-y-6">
                 
                <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
-    <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
-    <div class="space-y-2 text-sm">
-        <a href="https://booking.evaair.com/flyeva/eva/b2c/manage-your-trip/online-checked-in-login.aspx" target="_blank" class="font-bold text-blue-700 hover:text-blue-500 hover:underline transition duration-150 block">
-            按此於起飛前48至1小時辦理網上報到
-        </a>
-        <hr class="border-green-300">
-        <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50) (女友家人)</p>
-        <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20) (全員)</p>
-    </div>
-</div>
+                    <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
+                    <div class="space-y-2 text-sm">
+                        <a href="https://booking.evaair.com/flyeva/eva/b2c/manage-your-trip/online-checked-in-login.aspx?lang=zh-tw" target="_blank" class="font-bold text-blue-700 hover:text-blue-500 hover:underline transition duration-150 block">
+                            按此於起飛前 48 小時內辦理線上報到
+                        </a>
+                        <hr class="border-green-300">
+                        <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50)</p>
+                        <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20)</p>
+                    </div>
+                </div>
 
                 <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
     <h3 class="font-bold text-blue-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿地址</h3>
@@ -212,10 +238,11 @@
                         <div v-if="newExpense.category === '交通' && newExpense.item !== '其他交通'">
                             <select v-model="newExpense.item" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
                                 <option value="">請選擇交通方式 (非必填)</option>
-                                <option value="巴士"><i class="fa-solid fa-bus"></i> 巴士</option>
-                                <option value="地鐵"><i class="fa-solid fa-train-subway"></i> 地鐵</option>
-                                <option value="的士"><i class="fa-solid fa-taxi"></i> 的士</option>
-                                <option value="其他交通"><i class="fa-solid fa-road"></i> 其他</option>
+                                <option value="巴士">巴士</option>
+                                <option value="地鐵">地鐵</option>
+                                <option value="的士">的士</option>
+                                <option value="跨境交通">跨境交通</option>
+                                <option value="其他交通">其他</option>
                             </select>
                         </div>
                         <div v-else-if="newExpense.category === '交通' && newExpense.item === '其他交通'">
@@ -227,7 +254,7 @@
                     </div>
                     
                     <div class="flex gap-2">
-                           <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                            <select v-model="newExpense.category" class="flex-1 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
                                 <option value="吃喝">吃喝</option>
                                 <option value="交通">交通</option>
                                 <option value="購物">購物</option>
@@ -271,49 +298,50 @@
                     </div>
 
                     <div v-else class="p-2 bg-white rounded-lg border border-blue-300">
-                           <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
-                           
-                           <div v-if="exp.category === '交通' && exp.item === '其他交通'">
-                                <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
-                           </div>
-                           <div v-else-if="exp.category === '交通'">
-                                <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="巴士">巴士</option>
-                                    <option value="地鐵">地鐵</option>
-                                    <option value="的士">的士</option>
-                                    <option value="其他交通">其他</option>
-                                </select>
-                           </div>
-                           <div v-else>
-                                <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
-                           </div>
+                            <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
+                            
+                            <div v-if="exp.category === '交通' && exp.item === '其他交通'">
+                                 <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div v-else-if="exp.category === '交通'">
+                                 <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                                     <option value="巴士">巴士</option>
+                                     <option value="地鐵">地鐵</option>
+                                     <option value="的士">的士</option>
+                                     <option value="跨境交通">跨境交通</option>
+                                     <option value="其他交通">其他</option>
+                                 </select>
+                            </div>
+                            <div v-else>
+                                 <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
 
-                           <div class="flex gap-2 mb-2">
-                                <select v-model="exp.category" class="flex-1 p-2 border rounded-lg text-sm bg-white">
-                                    <option value="吃喝">吃喝</option>
-                                    <option value="交通">交通</option>
-                                    <option value="購物">購物</option>
-                                    <option value="門票">門票</option>
-                                    <option value="其他">其他</option>
-                                </select>
-                                <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
-                                 <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
-                                    <option value="HKD">HKD</option>
-                                    <option value="RMB">RMB</option>
-                                    <option value="TWD">TWD</option>
-                                </select>
-                           </div>
-                           <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
-                                <option value="現金">現金</option>
-                                <option value="信用卡">信用卡</option>
-                                <option value="八達通">八達通</option>
-                                <option value="電子支付">電子支付</option>
-                                <option value="其他">其他</option>
-                           </select>
+                            <div class="flex gap-2 mb-2">
+                                 <select v-model="exp.category" class="flex-1 p-2 border rounded-lg text-sm bg-white">
+                                     <option value="吃喝">吃喝</option>
+                                     <option value="交通">交通</option>
+                                     <option value="購物">購物</option>
+                                     <option value="門票">門票</option>
+                                     <option value="其他">其他</option>
+                                 </select>
+                                 <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
+                                  <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
+                                      <option value="HKD">HKD</option>
+                                      <option value="RMB">RMB</option>
+                                      <option value="TWD">TWD</option>
+                                  </select>
+                            </div>
+                            <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
+                                 <option value="現金">現金</option>
+                                 <option value="信用卡">信用卡</option>
+                                 <option value="八達通">八達通</option>
+                                 <option value="電子支付">電子支付</option>
+                                 <option value="其他">其他</option>
+                            </select>
 
-                           <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                                 儲存修改 <i class="fa-solid fa-save ml-1"></i>
-                           </button>
+                            <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                                     儲存修改 <i class="fa-solid fa-save ml-1"></i>
+                            </button>
                     </div>
                 </div>
             </section>
@@ -413,9 +441,9 @@
                     </div>
 
                     <div class="text-center pt-4">
-                         <button @click="isDetailModalOpen = false" class="w-full bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300 transition">
-                                關閉
-                         </button>
+                           <button @click="isDetailModalOpen = false" class="w-full bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300 transition">
+                                 關閉
+                           </button>
                     </div>
                 </div>
             </div>
@@ -455,130 +483,189 @@
         localStorage.setItem(key, JSON.stringify(cleanedList));
     }
 
-
+    // =======================================================
+    // 💡 輔助函式：將 'MM/DD' 轉換為帶有正確年份的 Date 物件 💡
+    // =======================================================
+    function getComparableDate(dateString) {
+        const [month, day] = dateString.split('/').map(Number);
+        
+        let year = 2025; // 預設年份為 2025
+        
+        // ** 修正年份判斷邏輯：跨 2025/2026 年 **
+        // 如果月份是 1 月（即 01/xx），則年份為 2026
+        if (month >= 1 && month <= 6) { // 行程最晚到 01/04
+            year = 2026;
+        } else if (month === 12) { // 12/25 ~ 12/31
+            year = 2025;
+        } 
+        
+        // 注意：月份在 JS 中從 0 (一月) 開始，所以要減 1
+        return new Date(year, month - 1, day);
+    }
+    
     // -------------------------------------------------------
     // Vue App 啟動前的數據處理 
     // -------------------------------------------------------
 
     // 🚩 數據修改區：行程與景點 🚩
+    // ** 此處已根據用戶的最新要求 (城市順序與住宿安排) 進行了修改 **
     const FIXED_SCHEDULE = [
-        // ** 12/25 ~ 12/31: 兩人行程 (備註中說明) **
+        // ----------------------------------------------------------------------
+        // 12/25 - 12/31: 使用 (1) 香港的家 住宿
+        // ----------------------------------------------------------------------
         { 
-            id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '抵港、check-in、旺角晚餐', weather: '晴時多雲', temp: '18°C / 13°C',
-            summary: '聖誕節抵達香港，先安頓好，晚上在熱鬧的旺角感受節日氣氛。',
+            id: 1, date: '12/25', city: '香港', city_code: 'HK', 
+            desc: '【聖誕節主題】各自抵達香港、尖沙咀海港城燈飾', 
+            weather: '晴時多雲', temp: '18°C / 13°C',
+            summary: '聖誕節兩人各自抵港後會合，前往九龍區感受濃厚的聖誕氣氛和維港夜景。',
             details: [
-                { name: '抵達香港國際機場', time: '14:00', note: '兩人各自前往香港君立飯店' },
-                { name: '君立飯店 (Camlux Hotel) Check-in', time: '16:00', link: 'https://tw.trip.com/hotels/hong-kong-hotel-detail-7114825/camlux-hotel/' },
-                { name: '旺角/油麻地晚餐', time: '19:30', note: '嘗試地道港式小吃或茶餐廳' },
-            ]
+                { name: '女友航班 BR869 (TPE) 抵港', time: '14:20 HKT', note: '兩人約在機場會合' },
+                { name: '您的航班 CX423 (KHH) 抵港', time: '15:00 HKT', note: '會合後，先回香港家安頓' },
+                { name: '尖沙咀 (Tsim Sha Tsui) 海港城/廣東道', time: '18:00', note: '觀賞聖誕大型燈飾佈置與維港夜景' },
+                { name: '聖誕晚餐與購物', time: '20:00', note: '在海旁或商場享用晚餐' },
+            ],
+            accommodation_note: '晚上住：香港的家 (1)'
         },
         { 
-            id: 2, date: '12/26', city: '深圳', city_code: 'SZ', desc: '華僑城創意園、羅湖口岸過境回港', weather: '晴朗', temp: '20°C / 15°C',
-            summary: '前往深圳體驗創意園區，晚上從羅湖口岸返回香港住宿。',
+            id: 2, date: '12/26', city: '深圳', city_code: 'SZ', 
+            desc: '深圳一日遊：華僑城創意文化園（文青、美食）', 
+            weather: '晴朗', temp: '20°C / 15°C',
+            summary: '前往深圳體驗藝術氣息和文青風格的園區，並品嚐當地小吃。',
             details: [
-                { name: '從羅湖/福田口岸入境深圳', time: '09:00', note: '注意證件及通關時間' },
+                { name: '從香港家出發，經羅湖/福田口岸入境深圳', time: '09:00', note: '前往羅湖或福田口岸' },
                 { name: '華僑城創意文化園 (OCT Loft)', time: '11:00', link: 'https://zh.wikipedia.org/wiki/%E5%8D%8E%E4%BE%A8%E5%9F%8E%E5%89%B5%E6%84%8F%E6%96%87%E5%8C%96%E5%9C%92' },
-                { name: '深圳午餐', time: '13:30', note: '園區內或附近餐廳' },
-                { name: '羅湖口岸出境回港', time: '18:00', note: '避免晚間高峰期' },
-            ]
+                { name: '深圳午餐：園區附近簡餐', time: '13:30', note: '可探索園區內特色咖啡廳' },
+                { name: '羅湖/福田口岸出境回港', time: '18:00', note: '返回香港的家' },
+            ],
+            accommodation_note: '晚上住：香港的家 (1)'
         },
         { 
-            id: 3, date: '12/27', city: '香港', city_code: 'HK', desc: '大嶼山、天壇大佛、大澳漁村', weather: '多雲', temp: '16°C / 11°C',
-            summary: '一天的大嶼山探索，搭乘昂坪纜車，探訪天壇大佛與水上棚屋。',
+            id: 3, date: '12/27', city: '香港', city_code: 'HK', 
+            desc: '離島/文化：南丫島或西九文化區（悠閒、藝術）', 
+            weather: '多雲', temp: '16°C / 11°C',
+            summary: '在緊張的跨年和廣州行前，選擇一處輕鬆悠閒的地點放鬆心情。',
             details: [
-                { name: '前往東涌纜車站', time: '09:30', note: '建議購買來回纜車票' },
-                { name: '天壇大佛與寶蓮禪寺', time: '11:00', note: '午餐可考慮在寶蓮禪寺享用素食' },
-                { name: '大澳漁村', time: '15:00', link: 'https://zh.wikipedia.org/wiki/%E5%A4%A7%E6%BE%B3' },
-                { name: '返回市區', time: '18:30', note: '可從大澳搭巴士回東涌再轉地鐵' },
-            ]
+                { name: '選項一：南丫島一日遊', time: '10:00', note: '中環碼頭搭渡輪，適合健行和海鮮午餐' },
+                { name: '選項二：西九文化區藝術巡禮', time: '13:00', note: '參觀 M+ 或故宮文化博物館，適合藝術愛好者' },
+                { name: '油麻地晚餐與彌敦道散步', time: '19:30', note: '回味在地風味' },
+            ],
+            accommodation_note: '晚上住：香港的家 (1)'
         },
+        // ----------------------------------------------------------------------
+        // 12/28 - 12/29: 使用 (2) 廣州希岸酒店 住宿
+        // ----------------------------------------------------------------------
         { 
-            id: 7, date: '12/28', city: '廣州', city_code: 'GZ', desc: '搭車至廣州、越秀公園、廣州塔夜景', weather: '大雨', temp: '15°C / 10°C',
-            summary: '從香港前往廣州體驗歷史和現代地標。',
+            id: 4, date: '12/28', city: '廣州', city_code: 'GZ', 
+            desc: '廣州第一日：廣州塔、珠江夜遊 (入住希岸酒店)', 
+            weather: '大雨', temp: '15°C / 10°C',
+            summary: '從香港前往廣州，入住酒店後，體驗廣州現代地標與珠江夜景。',
             details: [
-                { name: '從紅磡站搭乘廣九直通車', time: '09:00', note: '或搭高鐵至廣州東站/南站' },
-                { name: '廣州住宿 Check-in', time: '13:00', note: '建議在天河區或越秀區' },
-                { name: '越秀公園與五羊石像', time: '15:30', link: 'https://zh.wikipedia.org/wiki/%E8%B6%8A%E7%A7%80%E5%85%AC%E5%9C%92' },
-                { name: '廣州塔 (小蠻腰)', time: '19:00', note: '觀賞珠江新城夜景' },
-            ]
+                { name: '從香港西九龍站搭乘高鐵至廣州東站/南站', time: '09:00', note: '注意跨境高鐵班次' },
+                { name: '希岸酒店（廣州天河體育中心體育西路地鐵站店）Check-in', time: '13:00', link: 'https://tw.trip.com/hotels/guangzhou-hotel-detail-67614747/xian-hotel/' },
+                { name: '越秀公園或天河體育中心商圈', time: '15:30', note: '在酒店附近活動' },
+                { name: '廣州塔 (小蠻腰) 或 珠江夜遊', time: '19:00', note: '觀賞珠江新城夜景' },
+            ],
+            accommodation_note: '晚上住：希岸酒店（廣州）(2)'
         }, 
         { 
-            id: 8, date: '12/29', city: '廣州', city_code: 'GZ', desc: '沙面島、荔枝灣湧、粵式點心', weather: '晴時多雲', temp: '16°C / 11°C',
-            summary: '在廣州老城區感受歷史，品嚐地道的廣州美食。',
+            id: 5, date: '12/29', city: '廣州', city_code: 'GZ', 
+            desc: '廣州第二日：沙面島、永慶坊、地道粵式點心', 
+            weather: '晴時多雲', temp: '16°C / 11°C',
+            summary: '在廣州老城區感受歷史，品嚐地道的粵菜，傍晚返回香港的家。',
             details: [
                 { name: '沙面島異國建築群', time: '10:00', link: 'https://zh.wikipedia.org/wiki/%E6%B2%99%E9%9D%A2%E5%B3%B6' },
-                { name: '荔枝灣湧/永慶坊', time: '13:00', note: '體驗西關文化，安排午餐' },
-                { name: '晚餐：地道粵式點心/酒樓', time: '19:00', note: '推薦陶陶居或廣州酒家' },
-            ]
+                { name: '永慶坊/荔枝灣湧與地道粵式點心午餐', time: '13:00', note: '體驗西關文化，推薦陶陶居' },
+                { name: '從廣州出發，搭高鐵返回香港西九龍站', time: '17:00', note: '從香港西九龍站返回香港的家' },
+            ],
+            accommodation_note: '晚上住：香港的家 (1)'
         }, 
+        // ----------------------------------------------------------------------
+        // 12/30 - 12/31: 使用 (1) 香港的家 住宿
+        // ----------------------------------------------------------------------
         { 
-            id: 9, date: '12/30', city: '深圳', city_code: 'SZ', desc: '返回深圳、世界之窗主題樂園', weather: '多雲', temp: '19°C / 14°C',
-            summary: '從廣州返回深圳，在大型主題公園世界之窗度過一天。',
+            id: 6, date: '12/30', city: '深圳', city_code: 'SZ', 
+            desc: '深圳二日遊：世界之窗 或 歡樂海岸 (返回香港家)', 
+            weather: '多雲', temp: '19°C / 14°C',
+            summary: '廣州返回後，前往深圳進行第二天的深度探索，可選擇主題樂園或城市風景。',
             details: [
-                { name: '高鐵/直通車返回深圳', time: '10:00', note: '返回深圳住宿 check-in' },
-                { name: '世界之窗主題樂園', time: '13:00', link: 'https://zh.wikipedia.org/wiki/%E4%B8%96%E7%95%8C%E4%B9%8B%E7%AA%97_(%E6%B7%B1%E5%9C%B3)' },
-                { name: '觀賞晚間表演與燈光秀', time: '19:30', note: '樂園內晚餐' },
-            ]
+                { name: '早上從香港的家前往深圳（跨境交通）', time: '10:00', note: '今日仍是從香港往返' },
+                { name: '世界之窗主題樂園 或 深圳灣公園', time: '13:00', note: '根據偏好選擇，世界之窗較耗時' },
+                { name: '傍晚：從深圳返回香港的家', time: '19:00', note: '為明日的跨年夜做準備' },
+            ],
+            accommodation_note: '晚上住：香港的家 (1)'
         },
         { 
-            id: 10, date: '12/31', city: '香港', city_code: 'HK', desc: '維港跨年倒數（重點行程）', weather: '晴朗', temp: '17°C / 12°C',
-            summary: '跨年夜當晚，返回香港準備在維多利亞港迎新。',
+            id: 7, date: '12/31', city: '香港', city_code: 'HK', 
+            desc: '【重點行程】維港跨年倒數，準備迎新', 
+            weather: '晴朗', temp: '17°C / 12°C',
+            summary: '跨年夜當晚，在維多利亞港迎新，欣賞壯觀的煙火表演。',
             details: [
-                { name: '從深圳口岸過境至香港', time: '14:00', note: '準備跨年夜人潮，提早出發' },
-                { name: '尖沙咀海旁準備佔位', time: '19:00', note: '尋找最佳觀賞煙火位置' },
+                { name: '自由活動，午餐與休息，準備跨年夜', time: '14:00', note: '提早準備，避免人潮' },
+                { name: '尖沙咀/灣仔海旁佔位', time: '19:00', note: '尋找最佳觀賞煙火位置，帶保暖衣物' },
                 { name: '維多利亞港跨年倒數', time: '23:30', note: '午夜 12 點煙火秀 (注意散場人潮)' },
-            ]
+            ],
+            accommodation_note: '晚上住：香港的家 (1)'
         },
-        
-        // ** 01/01: 接機日 **
+        // ----------------------------------------------------------------------
+        // 1/1 - 1/4: 使用 (3) 香港飯店 住宿
+        // ----------------------------------------------------------------------
         { 
-            id: 11, date: '01/01', city: '深圳', city_code: 'SZ', desc: '前往機場接爸媽與弟弟、入住深圳住宿', weather: '小雨', temp: '18°C / 13°C',
-            summary: '新年第一天，前往機場迎接女友家人，開始五人團體行程。',
+            id: 8, date: '01/01', city: '深圳', city_code: 'SZ', 
+            desc: '【固定行程】深圳華強北電子市場，傍晚入住香港飯店', 
+            weather: '小雨', temp: '18°C / 13°C',
+            summary: '新年第一天，前往深圳華強北，逛電子市場尋寶，並結束在家住宿，改住飯店。',
             details: [
-                { name: '前往香港國際機場 (HKIA)', time: '09:00', note: '女友家人班機 BR867 09:50 抵達' },
-                { name: '接機與會合', time: '12:00', note: '午餐可在機場或東涌解決' },
-                { name: '前往深圳邦拓美諾行政公寓', time: '15:00', note: '入住並安頓家人，準備五人住宿' },
-                { name: '深圳晚餐與家庭聚餐', time: '19:00', note: '歡迎晚宴' },
-            ]
+                { name: '早上：從香港的家出發前往深圳華強北', time: '10:00', note: '過境後轉乘地鐵前往' },
+                { name: '華強北電子市場', time: '12:00', link: 'https://zh.wikipedia.org/wiki/%E5%8D%8E%E5%BC%BA%E5%8C%97' },
+                { name: '華強北周邊午餐', time: '14:00', note: '在電子市場周邊用餐' },
+                { name: '從深圳返回香港，並前往香港飯店 Check-in', time: '18:00', note: '將行李轉移至飯店' },
+            ],
+            accommodation_note: '晚上住：香港飯店 (3)'
         }, 
-        
-        // ** 01/02 ~ 01/04: 五人團體行程 **
         { 
-            id: 4, date: '01/02', city: '香港', city_code: 'HK', desc: '香港迪士尼樂園全日遊', weather: '晴時多雲', temp: '17°C / 12°C',
-            summary: '全員前往香港迪士尼樂園，盡情遊玩一天。',
+            id: 9, date: '01/02', city: '香港', city_code: 'HK', 
+            desc: '經典香港：太平山頂、山頂纜車、中環', 
+            weather: '晴時多雲', temp: '17°C / 12°C',
+            summary: '入住飯店後，探索中環和太平山頂的經典城市景觀。',
             details: [
-                { name: '從深圳前往香港迪士尼', time: '08:00', note: '過境後轉乘地鐵至欣澳站' },
-                { name: '香港迪士尼樂園', time: '10:30', link: 'https://www.hongkongdisneyland.com/' },
-                { name: '觀看夜間巡遊和煙火秀', time: '19:30', note: '確認當天表演時間' },
-                { name: '返回深圳住宿', time: '21:30', note: '搭地鐵轉口岸回深圳' },
-            ]
+                { name: '中環歷史建築群/石板街', time: '10:00', note: '從飯店出發前往中環' },
+                { name: '午餐：中環地區', time: '13:00', note: '探索中環美食' },
+                { name: '山頂纜車與太平山頂', time: '15:30', note: '享受維多利亞港全景' },
+                { name: '返回飯店附近晚餐', time: '19:30', note: '享受飯店周邊設施' },
+            ],
+            accommodation_note: '晚上住：香港飯店 (3)'
         },
         { 
-            id: 5, date: '01/03', city: '香港', city_code: 'HK', desc: '中環大館、石板街、山頂纜車', weather: '多雲', temp: '16°C / 11°C',
-            summary: '探索香港中環的歷史和現代風景。',
+            id: 10, date: '01/03', city: '香港', city_code: 'HK', 
+            desc: '購物/美食：旺角、油麻地、深水埗（在地、懷舊）', 
+            weather: '多雲', temp: '16°C / 11°C',
+            summary: '前往九龍舊區，感受最地道的香港生活氣息，適合購物和發掘街頭小吃。',
             details: [
-                { name: '中環大館（舊中區警署建築群）', time: '10:00', link: 'https://zh.wikipedia.org/wiki/%E5%A4%A7%E9%A4%A8' },
-                { name: '石板街（砵典乍街）', time: '12:00', note: '拍照留念' },
-                { name: '午餐：中環/上環地區', time: '13:00', note: '嘗試著名的蘭芳園或鏞記酒家' },
-                { name: '山頂纜車與太平山頂', time: '15:30', note: '欣賞維多利亞港全景' },
-            ]
+                { name: '深水埗：電子產品與懷舊小店', time: '10:00', note: '探索鴨寮街電子產品或布料市場' },
+                { name: '旺角：女人街、朗豪坊購物', time: '13:00', note: '午餐可在旺角解決' },
+                { name: '油麻地：廟街夜市 (晚間)', time: '18:00', note: '體驗夜市文化與大排檔晚餐' },
+            ],
+            accommodation_note: '晚上住：香港飯店 (3)'
         },
         { 
-            id: 6, date: '01/04', city: '香港', city_code: 'HK', desc: '最後採買、送機 (全員回程)', weather: '晴朗', temp: '19°C / 14°C',
-            summary: '旅行的最後一天，進行少量採買後，全員前往機場搭機回程。',
+            id: 11, date: '01/04', city: '香港 (離境)', city_code: 'HK', 
+            desc: '回程日：自由活動、前往機場', 
+            weather: '晴朗', temp: '19°C / 14°C',
+            summary: '旅行的尾聲，最後的自由活動與採購，準備前往香港國際機場。',
             details: [
-                { name: '香港市區自由活動與最後採買', time: '09:00', note: '可去尖沙咀或銅鑼灣購物' },
-                { name: '前往香港國際機場 (HKIA)', time: '11:00', note: '預留充足時間辦理退稅和出境手續' },
-                { name: '長榮 BR868 登機', time: '13:30', note: '結束愉快的跨年之旅' },
-            ]
-        }
+                { name: '最後的早餐或採購', time: '10:00', note: '依航班時間彈性調整' },
+                { name: '辦理退房手續', time: '11:00', note: '離開香港飯店' },
+                { name: '前往香港國際機場 (HKIA)', time: '按順序排列', note: '需預留充足交通時間' },
+                { name: '香港出發航班（待補）', time: '請提供具體出發時間', note: '在此填寫航班號和時間' },
+            ],
+            accommodation_note: 'N/A'
+        },
     ];
     
-    // 景點已移除
-    
-    const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
-    
+    // ** FIXED_MEMBERS 保持原狀 (不修改) **
+    const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛']; 
     const defaultExpenses = []; 
+    // ** defaultWishlist 保持原狀 (不修改) **
     const defaultWishlist = [{ id: 1, member: '橞宜', item: '小熊維尼公仔', done: false }];
 
     const initialExpenses = loadData('hk_trip_expenses', defaultExpenses);
@@ -591,55 +678,67 @@
     const RMB_RATE = 4.4; 
     const HKD_RATE = 4.0;
     
-    // 定義圖表顏色 (Chart.js 顏色配置)
     const CHART_COLORS = [
-        '#FF6384', 
-        '#36A2EB', 
-        '#FFCD56', 
-        '#4BC0C0', 
-        '#9966FF', 
-        '#FF9F40'
+        '#FF6384', '#36A2EB', '#FFCD56', '#4BC0C0', '#9966FF', '#FF9F40'
     ];
-    
     let expenseChartInstance = null;
     
-    // =======================================================
-    // 💡 方便手動更新天氣的 Font Awesome 圖標類備註 💡
-    /*
-    ** Font Awesome 天氣圖標參考 (請在 getWeatherIcon 函式中或直接在模板中替換 fa-xxx 部分): **
-    
-    --- 太陽/晴朗 ---
-    * 晴天 / 大太陽: `fa-sun`
-    * 晴時多雲 / 局部多雲: `fa-cloud-sun`
-    
-    --- 雲/陰天 ---
-    * 多雲 / 陰天: `fa-cloud`
-    * 濃霧 / 霧霾: `fa-smog`
-    
-    --- 降雨 ---
-    * 小雨 / 陣雨: `fa-cloud-rain`
-    * 大雨 / 暴雨: `fa-cloud-showers-heavy`
-    * 雷雨 / 打雷: `fa-bolt`
-    
-    --- 其他 ---
-    * 下雪: `fa-snowflake`
-    * 風: `fa-wind`
-    * 未知: `fa-question-circle`
-    */
-    // =======================================================
+    // 實時時間和天氣的靜態模擬數據 (您需手動更改)
+    const CURRENT_WEATHER_SIMULATION = {
+        description: '多雲時晴',
+        iconClass: 'fa-cloud-sun' 
+    };
 
 
     createApp({
         setup() {
             const currentTab = ref('itinerary'); 
             const isStatsModalOpen = ref(false); 
-            const isDetailModalOpen = ref(false); // 啟用詳情彈窗狀態
-            const selectedDayDetails = ref(null);  // 儲存選中的行程細節數據
+            const isDetailModalOpen = ref(false); 
+            const selectedDayDetails = ref(null);  
+            
+            // 【新增】實時時間狀態
+            const currentDateTime = ref(new Date());
+
+            // 定時器，每秒更新時間
+            setInterval(() => {
+                currentDateTime.value = new Date();
+            }, 1000);
+            
+            // --- Computed Properties for Header ---
+            const currentTime = computed(() => {
+                return currentDateTime.value.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            });
+
+            const currentFullDate = computed(() => {
+                return currentDateTime.value.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' });
+            });
+            
+            // 🚨 修正：動態獲取今天行程的天氣資訊 🚨
+            const todayHeaderWeather = computed(() => {
+                // 找出今天被標記的行程
+                const todayDay = orderedSchedule.value.find(day => day.isToday);
+                
+                if (todayDay) {
+                    return {
+                        city: todayDay.city.replace(' (當日往返)', '').replace(' (離境)', ''), // 清理城市名稱
+                        weather: todayDay.weather,
+                        temp: todayDay.temp
+                    };
+                }
+                return null; // 如果沒有匹配的日期，則不顯示
+            });
+
+
+            const currentWeather = ref(CURRENT_WEATHER_SIMULATION);
+
+            const getCurrentWeatherIcon = computed(() => {
+                return currentWeather.value.iconClass;
+            });
+
             
             // --- 數據結構 (Ref) ---
             const schedule = ref(FIXED_SCHEDULE);
-            
-            // landmarks 已移除
             const expenses = ref(initialExpenses);
             const newExpense = ref({ 
                 item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' 
@@ -647,7 +746,7 @@
             const members = FIXED_MEMBERS;
             const wishlist = ref(initialWishlist);
             const selectedMember = ref('全部'); 
-            const newWishItem = ref({ member: '橞宜', item: '' }); 
+            const newWishItem = ref({ member: '橞宜', item: '' }); // 保持原狀
             const calculator = ref({ amount: null, currency: 'HKD' });
 
 
@@ -655,7 +754,28 @@
             // 🚩 核心邏輯區 🚩
             // =======================================================
             
-            // 💡 根據天氣描述返回 Font Awesome 圖示
+            // 💡 修正 orderedSchedule: 嚴格按時間順序排列 (不再有置頂和折疊邏輯)
+            const orderedSchedule = computed(() => {
+                // 使用 reactive 的 currentDateTime.value 來確保計算屬性會在時間更新時重新計算
+                const now = currentDateTime.value;
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 獲取當天午夜
+
+                return schedule.value
+                    .map(day => {
+                        const tripDate = getComparableDate(day.date);
+                        
+                        // 檢查是否是今天 (用於高亮顯示)
+                        const isToday = tripDate.getFullYear() === today.getFullYear() && 
+                                                 tripDate.getMonth() === today.getMonth() && 
+                                                 tripDate.getDate() === today.getDate();
+                        
+                        return { ...day, isToday: isToday, tripDate: tripDate };
+                    })
+                    .sort((a, b) => a.tripDate - b.tripDate); // 嚴格按時間順序排序
+            });
+
+
+            // 💡 根據天氣描述返回 Font Awesome 圖示 (行程卡片用)
             function getWeatherIcon(weather) {
                 if (!weather) return 'fa-question-circle';
                 if (weather.includes('晴') && !weather.includes('多雲')) return 'fa-sun'; 
@@ -701,7 +821,7 @@
                 return convertToTWD(calculator.value.amount, calculator.value.currency);
             });
             
-
+            
             // --- 記帳 CRUD ---
             
             // 🎯 計算各分類總支出 (Computed Property)
@@ -750,7 +870,7 @@
                 item.isEditing = !item.isEditing; 
                 // 如果是儲存動作，確保 item 不為空 (給予類別名稱作為預設值)
                 if (!item.isEditing && !item.item) {
-                       item.item = item.category;
+                        item.item = item.category;
                 }
             }
 
@@ -821,8 +941,16 @@
             // --- 願望清單 CRUD (保持不變) ---
             
             const filteredWishlist = computed(() => {
+                if (!wishlist.value) return [];
                 if (selectedMember.value === '全部') {
-                    return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
+                    // 檢查 members 是否為空，避免在排序時崩潰
+                    if (members.length === 0) return wishlist.value; 
+
+                    return [...wishlist.value].sort((a, b) => {
+                        const indexA = members.indexOf(a.member);
+                        const indexB = members.indexOf(b.member);
+                        return indexA - indexB;
+                    });
                 }
                 return wishlist.value.filter(item => item.member === selectedMember.value);
             });
@@ -860,8 +988,10 @@
                 selectedDayDetails, 
                 openStatsModal, 
                 showDetails, 
-                // 行程 (只讀 - 來自 FIXED_*)
-                schedule, getWeatherIcon, 
+                // 行程
+                schedule, orderedSchedule, getWeatherIcon, 
+                // 頂部 Header 時間/天氣
+                currentTime, currentFullDate, currentWeather, todayHeaderWeather, getCurrentWeatherIcon,
                 // 記帳
                 expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD,
                 // 匯率計算
