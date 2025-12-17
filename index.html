@@ -493,7 +493,7 @@
         
         // ** 修正年份判斷邏輯：跨 2025/2026 年 **
         // 如果月份是 1 月（即 01/xx），則年份為 2026
-        if (month >= 1 && month <= 6) { // 行程最晚到 01/04
+        if (month >= 1 && month <= 6) { 
             year = 2026;
         } else if (month === 12) { // 12/25 ~ 12/31
             year = 2025;
@@ -508,11 +508,7 @@
     // -------------------------------------------------------
 
     // 🚩 數據修改區：行程與景點 🚩
-    // ** 此處已根據用戶的最新要求 (城市順序與住宿安排) 進行了修改 **
     const FIXED_SCHEDULE = [
-        // ----------------------------------------------------------------------
-        // 12/25 - 12/31: 使用 (1) 香港的家 住宿
-        // ----------------------------------------------------------------------
         { 
             id: 1, date: '12/25', city: '香港', city_code: 'HK', 
             desc: '【聖誕節主題】各自抵達香港、尖沙咀海港城燈飾', 
@@ -523,8 +519,7 @@
                 { name: '您的航班 CX423 (KHH) 抵港', time: '15:00 HKT', note: '會合後，先回香港家安頓' },
                 { name: '尖沙咀 (Tsim Sha Tsui) 海港城/廣東道', time: '18:00', note: '觀賞聖誕大型燈飾佈置與維港夜景' },
                 { name: '聖誕晚餐與購物', time: '20:00', note: '在海旁或商場享用晚餐' },
-            ],
-            accommodation_note: '晚上住：香港的家 (1)'
+            ]
         },
         { 
             id: 2, date: '12/26', city: '深圳', city_code: 'SZ', 
@@ -533,11 +528,10 @@
             summary: '前往深圳體驗藝術氣息和文青風格的園區，並品嚐當地小吃。',
             details: [
                 { name: '從香港家出發，經羅湖/福田口岸入境深圳', time: '09:00', note: '前往羅湖或福田口岸' },
-                { name: '華僑城創意文化園 (OCT Loft)', time: '11:00', link: 'https://zh.wikipedia.org/wiki/%E5%8D%8E%E4%BE%A8%E5%9F%8E%E5%89%B5%E6%84%8F%E6%96%87%E5%8C%96%E5%9C%92' },
-                { name: '深圳午餐：園區附近簡餐', time: '13:30', note: '可探索園區內特色咖啡廳' },
+                { name: '華僑城創意文化園 (OCT Loft)', time: '11:00' },
+                { name: '深圳午餐：園區附近簡餐', time: '13:30' },
                 { name: '羅湖/福田口岸出境回港', time: '18:00', note: '返回香港的家' },
-            ],
-            accommodation_note: '晚上住：香港的家 (1)'
+            ]
         },
         { 
             id: 3, date: '12/27', city: '香港', city_code: 'HK', 
@@ -545,27 +539,22 @@
             weather: '多雲', temp: '16°C / 11°C',
             summary: '在緊張的跨年和廣州行前，選擇一處輕鬆悠閒的地點放鬆心情。',
             details: [
-                { name: '選項一：南丫島一日遊', time: '10:00', note: '中環碼頭搭渡輪，適合健行和海鮮午餐' },
-                { name: '選項二：西九文化區藝術巡禮', time: '13:00', note: '參觀 M+ 或故宮文化博物館，適合藝術愛好者' },
-                { name: '油麻地晚餐與彌敦道散步', time: '19:30', note: '回味在地風味' },
-            ],
-            accommodation_note: '晚上住：香港的家 (1)'
+                { name: '選項一：南丫島一日遊', time: '10:00', note: '中環碼頭搭渡輪' },
+                { name: '選項二：西九文化區藝術巡禮', time: '13:00' },
+                { name: '油麻地晚餐與彌敦道散步', time: '19:30' },
+            ]
         },
-        // ----------------------------------------------------------------------
-        // 12/28 - 12/29: 使用 (2) 廣州希岸酒店 住宿
-        // ----------------------------------------------------------------------
         { 
             id: 4, date: '12/28', city: '廣州', city_code: 'GZ', 
             desc: '廣州第一日：廣州塔、珠江夜遊 (入住希岸酒店)', 
             weather: '大雨', temp: '15°C / 10°C',
             summary: '從香港前往廣州，入住酒店後，體驗廣州現代地標與珠江夜景。',
             details: [
-                { name: '從香港西九龍站搭乘高鐵至廣州東站/南站', time: '09:00', note: '注意跨境高鐵班次' },
-                { name: '希岸酒店（廣州天河體育中心體育西路地鐵站店）Check-in', time: '13:00', link: 'https://tw.trip.com/hotels/guangzhou-hotel-detail-67614747/xian-hotel/' },
-                { name: '越秀公園或天河體育中心商圈', time: '15:30', note: '在酒店附近活動' },
-                { name: '廣州塔 (小蠻腰) 或 珠江夜遊', time: '19:00', note: '觀賞珠江新城夜景' },
-            ],
-            accommodation_note: '晚上住：希岸酒店（廣州）(2)'
+                { name: '高鐵至廣州', time: '09:00' },
+                { name: '希岸酒店 Check-in', time: '13:00' },
+                { name: '越秀公園或天河體育中心商圈', time: '15:30' },
+                { name: '廣州塔 (小蠻腰) 或 珠江夜遊', time: '19:00' },
+            ]
         }, 
         { 
             id: 5, date: '12/29', city: '廣州', city_code: 'GZ', 
@@ -573,99 +562,87 @@
             weather: '晴時多雲', temp: '16°C / 11°C',
             summary: '在廣州老城區感受歷史，品嚐地道的粵菜，傍晚返回香港的家。',
             details: [
-                { name: '沙面島異國建築群', time: '10:00', link: 'https://zh.wikipedia.org/wiki/%E6%B2%99%E9%9D%A2%E5%B3%B6' },
-                { name: '永慶坊/荔枝灣湧與地道粵式點心午餐', time: '13:00', note: '體驗西關文化，推薦陶陶居' },
-                { name: '從廣州出發，搭高鐵返回香港西九龍站', time: '17:00', note: '從香港西九龍站返回香港的家' },
-            ],
-            accommodation_note: '晚上住：香港的家 (1)'
+                { name: '沙面島異國建築群', time: '10:00' },
+                { name: '永慶坊與粵式午餐', time: '13:00' },
+                { name: '搭高鐵返回香港', time: '17:00' },
+            ]
         }, 
-        // ----------------------------------------------------------------------
-        // 12/30 - 12/31: 使用 (1) 香港的家 住宿
-        // ----------------------------------------------------------------------
         { 
             id: 6, date: '12/30', city: '深圳', city_code: 'SZ', 
             desc: '深圳二日遊：世界之窗 或 歡樂海岸 (返回香港家)', 
             weather: '多雲', temp: '19°C / 14°C',
-            summary: '廣州返回後，前往深圳進行第二天的深度探索，可選擇主題樂園或城市風景。',
+            summary: '廣州返回後，前往深圳進行第二天的深度探索。',
             details: [
-                { name: '早上從香港的家前往深圳（跨境交通）', time: '10:00', note: '今日仍是從香港往返' },
-                { name: '世界之窗主題樂園 或 深圳灣公園', time: '13:00', note: '根據偏好選擇，世界之窗較耗時' },
-                { name: '傍晚：從深圳返回香港的家', time: '19:00', note: '為明日的跨年夜做準備' },
-            ],
-            accommodation_note: '晚上住：香港的家 (1)'
+                { name: '入境深圳', time: '10:00' },
+                { name: '世界之窗 或 深圳灣公園', time: '13:00' },
+                { name: '傍晚返回香港', time: '19:00' },
+            ]
         },
         { 
             id: 7, date: '12/31', city: '香港', city_code: 'HK', 
-            desc: '【重點行程】維港跨年倒數，準備迎新', 
+            desc: '【重點行程】維港跨年煙火，準備迎新', 
             weather: '晴朗', temp: '17°C / 12°C',
             summary: '跨年夜當晚，在維多利亞港迎新，欣賞壯觀的煙火表演。',
             details: [
-                { name: '自由活動，午餐與休息，準備跨年夜', time: '14:00', note: '提早準備，避免人潮' },
-                { name: '尖沙咀/灣仔海旁佔位', time: '19:00', note: '尋找最佳觀賞煙火位置，帶保暖衣物' },
-                { name: '維多利亞港跨年倒數', time: '23:30', note: '午夜 12 點煙火秀 (注意散場人潮)' },
-            ],
-            accommodation_note: '晚上住：香港的家 (1)'
+                { name: '休息準備跨年', time: '14:00' },
+                { name: '尖沙咀/灣仔海旁佔位', time: '19:00' },
+                { name: '維多利亞港跨年倒數', time: '23:30', note: '午夜 12 點煙火秀' },
+            ]
         },
-        // ----------------------------------------------------------------------
-        // 1/1 - 1/4: 使用 (3) 香港飯店 住宿
-        // ----------------------------------------------------------------------
         { 
             id: 8, date: '01/01', city: '深圳', city_code: 'SZ', 
-            desc: '【固定行程】深圳華強北電子市場，傍晚入住香港飯店', 
+            desc: '【重頭戲】機場接機直奔深圳，華強北、東門尋寶', 
             weather: '小雨', temp: '18°C / 13°C',
-            summary: '新年第一天，前往深圳華強北，逛電子市場尋寶，並結束在家住宿，改住飯店。',
+            summary: '接機後立即展開深圳之旅，從電子市場逛到美食老街，最後享受火鍋與按摩。',
             details: [
-                { name: '早上：從香港的家出發前往深圳華強北', time: '10:00', note: '過境後轉乘地鐵前往' },
-                { name: '華強北電子市場', time: '12:00', link: 'https://zh.wikipedia.org/wiki/%E5%8D%8E%E5%BC%BA%E5%8C%97' },
-                { name: '華強北周邊午餐', time: '14:00', note: '在電子市場周邊用餐' },
-                { name: '從深圳返回香港，並前往香港飯店 Check-in', time: '18:00', note: '將行李轉移至飯店' },
-            ],
-            accommodation_note: '晚上住：香港飯店 (3)'
+                { name: '接機及會合 (12:00 抵港)', time: '12:30', note: '預計 12:30 辦理完成出來' },
+                { name: '出發前往深圳', time: '13:30', note: '預計 13:30 到達深圳' },
+                { name: '深圳吃飯休息', time: '14:00' },
+                { name: '華強北電子市場', time: '15:30' },
+                { name: '東門老街逛街', time: '17:30' },
+                { name: '晚餐：汕頭牛肉火鍋', time: '19:30' },
+                { name: '按摩放鬆', time: '21:30' }
+            ]
         }, 
         { 
             id: 9, date: '01/02', city: '香港', city_code: 'HK', 
-            desc: '經典香港：太平山頂、山頂纜車、中環', 
+            desc: '深圳回港，油尖旺廟街與維港星光大道', 
             weather: '晴時多雲', temp: '17°C / 12°C',
-            summary: '入住飯店後，探索中環和太平山頂的經典城市景觀。',
+            summary: '中午回港後放行李，接著在油尖旺一帶逛街，搭乘城巴欣賞城市美景。',
             details: [
-                { name: '中環歷史建築群/石板街', time: '10:00', note: '從飯店出發前往中環' },
-                { name: '午餐：中環地區', time: '13:00', note: '探索中環美食' },
-                { name: '山頂纜車與太平山頂', time: '15:30', note: '享受維多利亞港全景' },
-                { name: '返回飯店附近晚餐', time: '19:30', note: '享受飯店周邊設施' },
-            ],
-            accommodation_note: '晚上住：香港飯店 (3)'
+                { name: '深圳吃早餐', time: '09:00' },
+                { name: '離開深圳', time: '11:00', note: '中午前離開' },
+                { name: '九龍灣放行李', time: '13:00' },
+                { name: '油尖旺逛街、廟街', time: '15:00' },
+                { name: '搭乘城巴觀光', time: '17:00', note: '預計 17:00 - 19:00 乘坐' },
+                { name: '維港星光大道夜遊', time: '19:30' }
+            ]
         },
         { 
             id: 10, date: '01/03', city: '香港', city_code: 'HK', 
-            desc: '購物/美食：旺角、油麻地、深水埗（在地、懷舊）', 
+            desc: '傳統推車早茶、銅鑼灣逛街、太平山夜景', 
             weather: '多雲', temp: '16°C / 11°C',
-            summary: '前往九龍舊區，感受最地道的香港生活氣息，適合購物和發掘街頭小吃。',
+            summary: '體驗經典的推車早茶，在銅鑼灣血拼，最後登上山頂俯瞰全港。',
             details: [
-                { name: '深水埗：電子產品與懷舊小店', time: '10:00', note: '探索鴨寮街電子產品或布料市場' },
-                { name: '旺角：女人街、朗豪坊購物', time: '13:00', note: '午餐可在旺角解決' },
-                { name: '油麻地：廟街夜市 (晚間)', time: '18:00', note: '體驗夜市文化與大排檔晚餐' },
-            ],
-            accommodation_note: '晚上住：香港飯店 (3)'
+                { name: '早茶時光 (推車港式點心)', time: '09:30' },
+                { name: '銅鑼灣逛街 (Esprit 等)', time: '13:00' },
+                { name: '太平山頂纜車及夜景', time: '16:30' }
+            ]
         },
         { 
             id: 11, date: '01/04', city: '香港 (離境)', city_code: 'HK', 
-            desc: '回程日：自由活動、前往機場', 
+            desc: '回程日：前往機場，結束豐富旅程', 
             weather: '晴朗', temp: '19°C / 14°C',
-            summary: '旅行的尾聲，最後的自由活動與採購，準備前往香港國際機場。',
+            summary: '最後的早餐後，準時前往機場搭機。',
             details: [
-                { name: '最後的早餐或採購', time: '10:00', note: '依航班時間彈性調整' },
-                { name: '辦理退房手續', time: '11:00', note: '離開香港飯店' },
-                { name: '前往香港國際機場 (HKIA)', time: '按順序排列', note: '需預留充足交通時間' },
-                { name: '香港出發航班（待補）', time: '請提供具體出發時間', note: '在此填寫航班號和時間' },
-            ],
-            accommodation_note: 'N/A'
-        },
+                { name: '抵達香港國際機場 (HKIA)', time: '11:30', note: '辦理登機手續' },
+                { name: '回程航班', time: '13:30', note: '帶著滿滿回憶返家' }
+            ]
+        }
     ];
     
-    // ** FIXED_MEMBERS 保持原狀 (不修改) **
     const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
     const defaultExpenses = []; 
-    // ** defaultWishlist 保持原狀 (不修改) **
     const defaultWishlist = [{ id: 1, member: '橞宜', item: '小熊維尼公仔', done: false }];
 
     const initialExpenses = loadData('hk_trip_expenses', defaultExpenses);
@@ -674,21 +651,13 @@
     let nextExpenseId = (initialExpenses.length > 0 ? Math.max(...initialExpenses.map(e => e.id)) : 0) + 1;
     let nextWishId = (initialWishlist.length > 0 ? Math.max(...initialWishlist.map(w => w.id)) : 0) + 1;
 
-    // 🚩 核心匯率常量 🚩
     const RMB_RATE = 4.4; 
     const HKD_RATE = 4.0;
     
-    const CHART_COLORS = [
-        '#FF6384', '#36A2EB', '#FFCD56', '#4BC0C0', '#9966FF', '#FF9F40'
-    ];
+    const CHART_COLORS = ['#FF6384', '#36A2EB', '#FFCD56', '#4BC0C0', '#9966FF', '#FF9F40'];
     let expenseChartInstance = null;
     
-    // 實時時間和天氣的靜態模擬數據 (您需手動更改)
-    const CURRENT_WEATHER_SIMULATION = {
-        description: '多雲時晴',
-        iconClass: 'fa-cloud-sun' 
-    };
-
+    const CURRENT_WEATHER_SIMULATION = { description: '多雲時晴', iconClass: 'fa-cloud-sun' };
 
     createApp({
         setup() {
@@ -696,86 +665,41 @@
             const isStatsModalOpen = ref(false); 
             const isDetailModalOpen = ref(false); 
             const selectedDayDetails = ref(null);  
-            
-            // 【新增】實時時間狀態
             const currentDateTime = ref(new Date());
 
-            // 定時器，每秒更新時間
-            setInterval(() => {
-                currentDateTime.value = new Date();
-            }, 1000);
+            setInterval(() => { currentDateTime.value = new Date(); }, 1000);
             
-            // --- Computed Properties for Header ---
-            const currentTime = computed(() => {
-                return currentDateTime.value.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            });
-
-            const currentFullDate = computed(() => {
-                return currentDateTime.value.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' });
-            });
+            const currentTime = computed(() => currentDateTime.value.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+            const currentFullDate = computed(() => currentDateTime.value.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' }));
             
-            // 🚨 修正：動態獲取今天行程的天氣資訊 🚨
             const todayHeaderWeather = computed(() => {
-                // 找出今天被標記的行程
                 const todayDay = orderedSchedule.value.find(day => day.isToday);
-                
                 if (todayDay) {
-                    return {
-                        city: todayDay.city.replace(' (當日往返)', '').replace(' (離境)', ''), // 清理城市名稱
-                        weather: todayDay.weather,
-                        temp: todayDay.temp
-                    };
+                    return { city: todayDay.city.replace(' (當日往返)', '').replace(' (離境)', ''), weather: todayDay.weather, temp: todayDay.temp };
                 }
-                return null; // 如果沒有匹配的日期，則不顯示
+                return null;
             });
-
 
             const currentWeather = ref(CURRENT_WEATHER_SIMULATION);
-
-            const getCurrentWeatherIcon = computed(() => {
-                return currentWeather.value.iconClass;
-            });
-
-            
-            // --- 數據結構 (Ref) ---
             const schedule = ref(FIXED_SCHEDULE);
             const expenses = ref(initialExpenses);
-            const newExpense = ref({ 
-                item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' 
-            });
+            const newExpense = ref({ item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' });
             const members = FIXED_MEMBERS;
             const wishlist = ref(initialWishlist);
             const selectedMember = ref('全部'); 
             const newWishItem = ref({ member: '橞宜', item: '' }); 
             const calculator = ref({ amount: null, currency: 'HKD' });
 
-
-            // =======================================================
-            // 🚩 核心邏輯區 🚩
-            // =======================================================
-            
-            // 💡 修正 orderedSchedule: 嚴格按時間順序排列 (不再有置頂和折疊邏輯)
             const orderedSchedule = computed(() => {
-                // 使用 reactive 的 currentDateTime.value 來確保計算屬性會在時間更新時重新計算
                 const now = currentDateTime.value;
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 獲取當天午夜
-
-                return schedule.value
-                    .map(day => {
-                        const tripDate = getComparableDate(day.date);
-                        
-                        // 檢查是否是今天 (用於高亮顯示)
-                        const isToday = tripDate.getFullYear() === today.getFullYear() && 
-                                                 tripDate.getMonth() === today.getMonth() && 
-                                                 tripDate.getDate() === today.getDate();
-                        
-                        return { ...day, isToday: isToday, tripDate: tripDate };
-                    })
-                    .sort((a, b) => a.tripDate - b.tripDate); // 嚴格按時間順序排序
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                return schedule.value.map(day => {
+                    const tripDate = getComparableDate(day.date);
+                    const isToday = tripDate.getFullYear() === today.getFullYear() && tripDate.getMonth() === today.getMonth() && tripDate.getDate() === today.getDate();
+                    return { ...day, isToday, tripDate };
+                }).sort((a, b) => a.tripDate - b.tripDate);
             });
 
-
-            // 💡 根據天氣描述返回 Font Awesome 圖示 (行程卡片用)
             function getWeatherIcon(weather) {
                 if (!weather) return 'fa-question-circle';
                 if (weather.includes('晴') && !weather.includes('多雲')) return 'fa-sun'; 
@@ -785,13 +709,7 @@
                 return 'fa-cloud-sun'; 
             }
 
-            // 💡 顯示行程詳情彈窗
-            function showDetails(day) {
-                selectedDayDetails.value = day;
-                isDetailModalOpen.value = true;
-            }
-            
-            // 💰 匯率轉換函式 (從任何幣別轉 TWD)
+            function showDetails(day) { selectedDayDetails.value = day; isDetailModalOpen.value = true; }
             function convertToTWD(amount, currency) {
                 amount = Number(amount) || 0;
                 switch (currency) {
@@ -802,10 +720,7 @@
                 }
             }
             
-            // 輔助函式：根據 category 代碼獲取易讀標籤
             function getCategoryLabel(category) {
-                if (!category) return '💡 其他'; 
-                
                 switch (category) {
                     case '吃喝': return '🍽️ 吃喝';
                     case '交通': return '🚌 交通';
@@ -815,190 +730,60 @@
                 }
             }
 
-
-            // 💰 匯率計算屬性 (給上方計算機使用)
-            const calculatedTWD = computed(() => {
-                return convertToTWD(calculator.value.amount, calculator.value.currency);
-            });
-            
-            
-            // --- 記帳 CRUD ---
-            
-            // 🎯 計算各分類總支出 (Computed Property)
+            const calculatedTWD = computed(() => convertToTWD(calculator.value.amount, calculator.value.currency));
             const categoryTotals = computed(() => {
                 const totals = { '吃喝': 0, '交通': 0, '購物': 0, '門票': 0, '其他': 0 };
-                
                 expenses.value.forEach(exp => {
                     const twdAmount = convertToTWD(exp.amount, exp.currency);
-                    const mainCategoryKey = exp.category || '其他'; 
-                    
-                    if (totals.hasOwnProperty(mainCategoryKey)) {
-                        totals[mainCategoryKey] += twdAmount;
-                    } else {
-                        totals['其他'] += twdAmount;
-                    }
+                    const key = exp.category || '其他'; 
+                    if (totals.hasOwnProperty(key)) totals[key] += twdAmount; else totals['其他'] += twdAmount;
                 });
                 return totals;
             });
 
-            // 計算總支出 (Computed Property) - TWD 總額
-            const totalExpenseTWD = computed(() => {
-                return expenses.value.reduce((total, exp) => {
-                    return total + convertToTWD(exp.amount, exp.currency);
-                }, 0);
-            });
-            
-            // 新增支出函式
+            const totalExpenseTWD = computed(() => expenses.value.reduce((total, exp) => total + convertToTWD(exp.amount, exp.currency), 0));
             function addExpense() {
-                // 僅檢查金額是否填寫
                 if (newExpense.value.amount) {
-                    expenses.value.unshift({ 
-                        ...newExpense.value, 
-                        id: nextExpenseId++,
-                        isEditing: false,
-                        // 處理簡述：如果 item 為空字串，將其替換為類別名稱
-                        item: newExpense.value.item || newExpense.value.category
-                    });
-                    
-                    // 重設表單
+                    expenses.value.unshift({ ...newExpense.value, id: nextExpenseId++, isEditing: false, item: newExpense.value.item || newExpense.value.category });
                     newExpense.value = { item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' };
                 }
             }
+            function toggleEdit(item) { item.isEditing = !item.isEditing; if (!item.isEditing && !item.item) item.item = item.category; }
+            function deleteExpense(id) { expenses.value = expenses.value.filter(exp => exp.id !== id); }
 
-            // 編輯/儲存切換函式
-            function toggleEdit(item) { 
-                item.isEditing = !item.isEditing; 
-                // 如果是儲存動作，確保 item 不為空 (給予類別名稱作為預設值)
-                if (!item.isEditing && !item.item) {
-                        item.item = item.category;
-                }
-            }
-
-            // 刪除支出函式
-            function deleteExpense(id) {
-                expenses.value = expenses.value.filter(exp => exp.id !== id);
-            }
-
-            // 🌟 圓餅圖繪製邏輯 🌟
             function renderChart() {
-                if (expenseChartInstance) {
-                    expenseChartInstance.destroy(); 
-                }
-
+                if (expenseChartInstance) expenseChartInstance.destroy(); 
                 const ctx = document.getElementById('expenseChart').getContext('2d');
                 const totals = categoryTotals.value;
-                
                 const labels = Object.keys(totals).filter(key => totals[key] > 0);
                 const data = labels.map(key => totals[key]);
-
                 expenseChartInstance = new Chart(ctx, {
                     type: 'doughnut', 
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: CHART_COLORS.slice(0, labels.length),
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.parsed || 0;
-                                        const total = data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((value / total) * 100).toFixed(1);
-                                        return `${label}: TWD ${value.toFixed(0)} (${percentage}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    data: { labels, datasets: [{ data, backgroundColor: CHART_COLORS.slice(0, labels.length), hoverOffset: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
                 });
             }
             
-            // 🌟 打開統計彈窗並繪製圖表 🌟
-            function openStatsModal() {
-                isStatsModalOpen.value = true;
-                nextTick(() => {
-                    renderChart();
-                });
-            }
-            
-            // 🌟 監聽新支出類別切換，清空簡述以避免殘留
-            watch(() => newExpense.value.category, (newCategory) => {
-                newExpense.value.item = ''; 
-            });
+            function openStatsModal() { isStatsModalOpen.value = true; nextTick(() => renderChart()); }
+            watch(() => newExpense.value.category, () => { newExpense.value.item = ''; });
 
-
-            // --- 願望清單 CRUD (保持不變) ---
-            
             const filteredWishlist = computed(() => {
                 if (!wishlist.value) return [];
-                if (selectedMember.value === '全部') {
-                    // 檢查 members 是否為空，避免在排序時崩潰
-                    if (members.length === 0) return wishlist.value; 
-
-                    return [...wishlist.value].sort((a, b) => {
-                        const indexA = members.indexOf(a.member);
-                        const indexB = members.indexOf(b.member);
-                        return indexA - indexB;
-                    });
-                }
+                if (selectedMember.value === '全部') return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
                 return wishlist.value.filter(item => item.member === selectedMember.value);
             });
-            
             function addWishItem() {
                 if (newWishItem.value.item && newWishItem.value.member) {
-                    wishlist.value.push({ 
-                        id: nextWishId++,
-                        member: newWishItem.value.member,
-                        item: newWishItem.value.item, 
-                        done: false 
-                    });
+                    wishlist.value.push({ id: nextWishId++, member: newWishItem.value.member, item: newWishItem.value.item, done: false });
                     newWishItem.value.item = ''; 
                     selectedMember.value = newWishItem.value.member;
                 }
             }
-            
-            function deleteWishItem(id) {
-                wishlist.value = wishlist.value.filter(item => item.id !== id);
-            }
-            
-            // =======================================================
-            // 🚩 數據變動監聽器：自動儲存到 Local Storage 🚩
-            // =======================================================
+            function deleteWishItem(id) { wishlist.value = wishlist.value.filter(item => item.id !== id); }
+            watch(expenses, (newList) => saveData('hk_trip_expenses', newList), { deep: true });
+            watch(wishlist, (newList) => saveData('hk_trip_wishlist', newList), { deep: true });
 
-            const watchOptions = { deep: true };
-            watch(expenses, (newList) => saveData('hk_trip_expenses', newList), watchOptions);
-            watch(wishlist, (newList) => saveData('hk_trip_wishlist', newList), watchOptions);
-
-
-            return { 
-                currentTab, 
-                isStatsModalOpen, 
-                isDetailModalOpen, 
-                selectedDayDetails, 
-                openStatsModal, 
-                showDetails, 
-                // 行程
-                schedule, orderedSchedule, getWeatherIcon, 
-                // 頂部 Header 時間/天氣
-                currentTime, currentFullDate, currentWeather, todayHeaderWeather, getCurrentWeatherIcon,
-                // 記帳
-                expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD,
-                // 匯率計算
-                calculator, calculatedTWD,
-                // 願望清單
-                members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem, deleteWishItem
-            };
+            return { currentTab, isStatsModalOpen, isDetailModalOpen, selectedDayDetails, openStatsModal, showDetails, schedule, orderedSchedule, getWeatherIcon, currentTime, currentFullDate, currentWeather, todayHeaderWeather, expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD, calculator, calculatedTWD, members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem, deleteWishItem };
         }
     }).mount('#app');
 </script>
