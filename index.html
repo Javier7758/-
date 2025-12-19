@@ -3,106 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025-2026 跨年旅行 | 本地儲存版 (極簡)</title>
+    <title>2025-2026 跨年旅行 | 雲端同步版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
         .fa-solid { margin-right: 5px; } 
 
-        /* 【香港背景：紫色系】 */
-        .card-bg-HK { 
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), 
-            url('https://dummyimage.com/600x80/6a0dad/ffffff&text=Hong+Kong'); /* 紫色 */
-            background-size: cover; 
-            background-position: center;
-        }
+        .card-bg-HK { background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/6a0dad/ffffff&text=Hong+Kong'); background-size: cover; background-position: center; }
+        .card-bg-SZ { background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/004d40/ffffff&text=Shenzhen'); background-size: cover; background-position: center; }
+        .card-bg-GZ { background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/1a73e8/ffffff&text=Guangzhou'); background-size: cover; background-position: center; }
+
+        .card-bg-default { background-color: #374151; }
+        .weather-info { display: flex; align-items: center; font-size: 0.8rem; text-align: right; margin-left: auto; padding-left: 8px; }
+        .detail-link { font-weight: bold; color: #1a73e8; transition: color 0.15s; }
+        .detail-link:hover { color: #0056b3; text-decoration: underline; }
         
-        /* 深圳背景：綠色系 */
-        .card-bg-SZ { 
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/004d40/ffffff&text=Shenzhen'); /* 深綠色 */
-            background-size: cover; 
-            background-position: center;
-        }
-
-        /* 【廣州背景：藍色系】 */
-        .card-bg-GZ { 
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/1a73e8/ffffff&text=Guangzhou'); /* 藍色 */
-            background-size: cover; 
-            background-position: center;
-        }
-
-        .card-bg-default {
-            background-color: #374151; /* slate-700 fallback */
-        }
-        
-        .weather-info {
-            display: flex;
-            align-items: center;
-            font-size: 0.8rem;
-            text-align: right;
-            margin-left: auto;
-            /* 修正：為天氣區增加一些左邊距，確保不與城市名稱重疊 */
-            padding-left: 8px; 
-        }
-
-        /* 景點連結樣式 */
-        .detail-link {
-            font-weight: bold;
-            color: #1a73e8; /* 藍色 */
-            transition: color 0.15s;
-        }
-        .detail-link:hover {
-            color: #0056b3;
-            text-decoration: underline;
-        }
+        [v-cloak] { display: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-    <div id="app" class="max-w-md mx-auto min-h-screen pb-4 relative shadow-2xl bg-white">
+    <div id="app" v-cloak class="max-w-md mx-auto min-h-screen pb-4 relative shadow-2xl bg-white">
         
         <header class="bg-slate-900 text-white p-4 rounded-b-3xl shadow-lg">
             <div class="flex justify-between items-start mb-1">
                 <div>
                     <h1 class="text-xl font-bold italic">跨年旅行 <span class="text-orange-500">2025-2026</span></h1>
-                    <p class="text-xs opacity-75">數據已儲存於您的裝置，無需登入</p>
+                    <p class="text-xs opacity-75 flex items-center">
+                        <span v-if="dbStatus === '已連線'" class="text-green-400"><i class="fa-solid fa-check-circle"></i> 已連線雲端</span>
+                        <span v-else class="text-yellow-400"><i class="fa-solid fa-spinner fa-spin"></i> {{ dbStatus }}</span>
+                    </p>
                 </div>
-                
                 <div class="text-right text-sm">
                     <p class="font-bold text-orange-400">{{ currentFullDate }}</p>
                     <p class="font-light text-xl leading-none">{{ currentTime }}</p>
-                    
                     <div v-if="todayHeaderWeather" class="flex items-center justify-end opacity-90 mt-1 space-x-1">
                         <i :class="getWeatherIcon(todayHeaderWeather.weather)" class="fa-solid text-yellow-300 text-sm"></i>
                         <span class="text-xs font-medium">{{ todayHeaderWeather.weather }}</span>
                         <span class="text-xs opacity-75">({{ todayHeaderWeather.city }})</span>
                     </div>
-                    <div v-else class="h-4"></div> 
                 </div>
             </div>
         </header>
         
-        <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium">
-            <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
-            <button @click="currentTab = 'finance'" :class="{'tab-active': currentTab === 'finance'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-wallet block text-lg mb-1"></i>記帳</button>
-            <button @click="currentTab = 'wishlist'" :class="{'tab-active': currentTab === 'wishlist'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-gift block text-lg mb-1"></i>願望</button>
-            
+        <nav class="flex justify-around bg-white border-b sticky top-0 z-10 text-slate-400 font-medium overflow-x-auto">
+            <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
+            <button @click="currentTab = 'finance'" :class="{'tab-active': currentTab === 'finance'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-wallet block text-lg mb-1"></i>記帳</button>
+            <button @click="currentTab = 'wishlist'" :class="{'tab-active': currentTab === 'wishlist'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-gift block text-lg mb-1"></i>願望</button>
             <a href="https://www.gbaweather.net/tc/" target="_blank" class="py-4 flex-1 text-sm flex flex-col items-center justify-center text-slate-400 hover:text-orange-500 transition duration-150">
-                <i class="fa-solid fa-cloud-sun block text-lg mb-1"></i>
-                天氣
+                <i class="fa-solid fa-cloud-sun block text-lg mb-1"></i>天氣
             </a>
-            
-            <button @click="currentTab = 'essentials'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>重要資訊</button>
+            <button @click="currentTab = 'essentials'; essentialsMode = 'main'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-bell block text-lg mb-1"></i>重要資訊</button>
         </nav>
 
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
-                
                 <div class="bg-slate-200 p-4 rounded-2xl mb-4 shadow-inner">
                     <h3 class="font-bold text-slate-800 mb-2 flex justify-between items-center">
                         匯率計算機 (TWD) <i class="fa-solid fa-calculator"></i>
@@ -117,25 +80,13 @@
                     <p v-if="calculator.amount > 0" class="text-center text-lg font-bold text-orange-700">
                         = ${{ calculatedTWD.toFixed(2) }} TWD
                     </p>
-                    <p v-else class="text-center text-sm text-slate-500">
-                        請輸入金額以開始計算
-                    </p>
                 </div>
                 <div v-for="day in orderedSchedule" :key="day.id" @click="showDetails(day)" 
-                    class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl cursor-pointer relative"
-                    :class="{
-                        'ring-4 ring-red-500/70 shadow-2xl bg-yellow-50': day.isToday
-                    }"> 
-                    
-                    <div v-if="day.isToday" class="absolute top-0 left-0 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-br-xl z-10">
-                        📌 今日行程
-                    </div>
-
-                    <div :class="`card-bg-${day.city_code}`"
-                        class="h-16 w-full flex justify-between items-center p-3 text-white">
-                        
+                    class="bg-white rounded-xl shadow-lg overflow-hidden transition active:scale-95 cursor-pointer relative"
+                    :class="{'ring-4 ring-red-500/70 shadow-2xl bg-yellow-50': day.isToday}"> 
+                    <div v-if="day.isToday" class="absolute top-0 left-0 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-br-xl z-10">📌 今日行程</div>
+                    <div :class="`card-bg-${day.city_code}`" class="h-16 w-full flex justify-between items-center p-3 text-white">
                         <span class="text-xl font-extrabold tracking-wider mr-2">{{ day.city }}</span>
-                        
                         <div class="weather-info">
                             <i :class="getWeatherIcon(day.weather)" class="fa-solid mr-1 text-yellow-300 text-lg"></i>
                             <div class="flex flex-col items-end leading-none">
@@ -144,245 +95,189 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="p-3 border-l-4 border-orange-500"> 
                         <span class="text-lg font-extrabold text-slate-800 block mb-1">{{ day.date }}</span>
                         <p class="text-sm text-slate-700 truncate">{{ day.desc }}</p>
+                        <p v-if="day.accommodation_note" class="text-xs text-slate-500 mt-2 flex items-center bg-slate-100 p-1 rounded-md w-fit">
+                            <i class="fa-solid fa-bed mr-1 text-orange-500"></i> {{ day.accommodation_note }}
+                        </p>
                     </div>
                 </div>
             </section>
 
             <section v-if="currentTab === 'essentials'" class="space-y-6">
-                
-               <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
-                    <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
-                    <div class="space-y-2 text-sm">
-                        <a href="https://booking.evaair.com/flyeva/eva/b2c/manage-your-trip/online-checked-in-login.aspx?lang=zh-tw" target="_blank" class="font-bold text-blue-700 hover:text-blue-500 hover:underline transition duration-150 block">
-                            按此於起飛前 48 小時內辦理線上報到
-                        </a>
-                        <hr class="border-green-300">
-                        <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50)</p>
-                        <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20)</p>
+                <div v-if="essentialsMode === 'main'" class="space-y-6">
+                    <button @click="essentialsMode = 'apps'" class="w-full bg-slate-900 text-white p-4 rounded-xl shadow-lg flex items-center justify-between transition active:scale-95">
+                        <span class="font-bold text-lg"><i class="fa-solid fa-mobile-screen-button text-orange-500 mr-2"></i> 深圳/香港必備 App 下載</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
+                        <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50)</p>
+                            <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20)</p>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
+                        <h3 class="font-bold text-blue-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿</h3>
+                        <div v-for="note in uniqueAccommodationNotes" :key="note" class="text-sm mb-2 border-b border-blue-100 pb-1 last:border-0">
+                            <i class="fa-solid fa-check text-blue-500 mr-1 text-xs"></i> {{ note }}
+                        </div>
+                        <div class="mt-2 text-xs text-slate-500">
+                            <p><strong>🇨🇳 深圳：</strong>南山區, 月亮灣大道1104號佳兆業前海廣場二期B座5樓506室</p>
+                            <p><strong>🇭🇰 香港：</strong>觀塘區, 九龍灣宏光道15號</p>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
+                        <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話</h3>
+                        <div class="flex justify-around text-sm font-medium">
+                            <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1">🇭🇰 999</a>
+                            <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1">🇨🇳 110</a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
-    <h3 class="font-bold text-blue-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿地址</h3>
-
-    <div class="mb-4 pb-3 border-b border-blue-200">
-        <p class="font-bold text-base text-slate-900 mb-1">🇨🇳 深圳</p>
-        
-        <a href="https://tw.trip.com/hotels/shenzhen-hotel-detail-41520773/bangtuo-meinuo-executive-apartment/" target="_blank" class="font-bold text-orange-600 hover:text-orange-500 hover:underline transition duration-150 text-base block">
-            邦拓美諾行政公寓（深圳前海廣場店）
-        </a>
-        
-        <p class="text-xs text-slate-600 mt-1">
-            南山區, 月亮灣大道1104號佳兆業前海廣場二期B座5樓506室
-        </p>
-    
-    </div>
-
-    <div>
-        <p class="font-bold text-base text-slate-900 mb-1">🇭🇰 香港</p>
-        
-        <a href="https://tw.trip.com/hotels/hong-kong-hotel-detail-7114825/camlux-hotel/" target="_blank" class="font-bold text-orange-600 hover:text-orange-500 hover:underline transition duration-150 text-base block">
-            香港君立飯店
-        </a>
-        
-        <p class="text-xs text-slate-600 mt-1">
-            觀塘區, 九龍灣宏光道15號
-        </p>
-        <a href="https://www.google.com/maps/place/%E5%90%9B%E7%AB%8B%E9%85%92%E5%BA%97/@22.3237639,114.2034422,17z/data=!3m1!4b1!4m9!3m8!1s0x34040132e4727759:0xaefe60d32380705b!5m2!4m1!1i2!8m2!3d22.3237639!4d114.2060171!16s%2Fg%2F11c5s98sdf?entry=ttu&g_ep=EgoyMDI1MTIwMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">在 Google 地圖上查看 <i class="fa-solid fa-location-dot ml-1"></i></a>
-    </div>
-</div>
-
-               <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
-    <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話（點擊撥出）</h3>
-    <div class="flex justify-around text-sm font-medium">
-        <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
-            🇭🇰 **香港：** <span class="font-black text-xl">999</span>
-        </a>
-        <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
-            🇨🇳 **中國大陸 ：** <span class="font-black text-xl">110</span>
-        </a>
-    </div>
-</div>
-
-<div class="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
-    <h3 class="font-bold text-yellow-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-exclamation-circle mr-2"></i> 旅遊注意事項</h3>
-    <ul class="list-disc list-inside text-sm space-y-1 text-slate-700">
-        <li>**電源：** 220V部分電器需使用轉接頭及變壓器。</li>
-        <li>**入境：** 不可攜帶加熱煙及多於19支香煙入境 。</li>
-        <li>**證件：** 若未隨身攜帶身份證明文件屬於違法</li>
-    </ul>
-
-</div>
-
+                <div v-if="essentialsMode === 'apps'" class="space-y-4">
+                    <button @click="essentialsMode = 'main'" class="text-slate-500 font-bold mb-2 flex items-center hover:text-slate-800">
+                        <i class="fa-solid fa-chevron-left mr-2"></i> 返回重要資訊
+                    </button>
+                    <div v-for="(apps, region) in appList" :key="region">
+                        <h4 class="font-bold text-slate-800 border-b-2 border-orange-400 pb-1 mb-3 mt-4 flex items-center">{{ region }}</h4>
+                        <div class="grid grid-cols-1 gap-3">
+                            <div v-for="app in apps" :key="app.name" class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                                <div class="flex items-start mb-2">
+                                    <div class="mr-3 text-2xl text-slate-700 w-8 text-center"><i :class="app.icon"></i></div>
+                                    <div><p class="font-bold text-slate-800">{{ app.name }}</p><p class="text-xs text-slate-500">{{ app.desc }}</p></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a :href="app.ios" target="_blank" class="flex-1 bg-black text-white text-[10px] py-2 px-1 rounded-lg text-center flex items-center justify-center transition hover:bg-gray-800"><i class="fa-brands fa-apple mr-1 text-sm"></i>iOS</a>
+                                    <a :href="app.android" target="_blank" class="flex-1 bg-green-600 text-white text-[10px] py-2 px-1 rounded-lg text-center flex items-center justify-center transition hover:bg-green-700"><i class="fa-brands fa-android mr-1 text-sm"></i>Android</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section v-if="currentTab === 'finance'">
-                
-                
                 <div @click="openStatsModal" class="bg-slate-900 text-white p-4 rounded-2xl mb-4 shadow-lg cursor-pointer transition duration-150 hover:bg-slate-800">
-                    <p class="text-xs opacity-70 flex justify-between items-center">
-                        總支出 (TWD)
-                        <i class="fa-solid fa-chart-pie text-base"></i>
-                    </p>
+                    <p class="text-xs opacity-70 flex justify-between items-center">總支出 (TWD)<i class="fa-solid fa-chart-pie text-base"></i></p>
                     <p class="text-2xl font-bold">TWD ${{ totalExpenseTWD.toFixed(0) }}</p>
                 </div>
-
                 <div class="space-y-2 mb-6 p-4 border border-dashed rounded-xl bg-orange-50">
                     <h4 class="font-bold text-slate-800 mb-2">新增支出項目</h4>
-                    
-                    <div class="w-full">
+                    <div class="w-full mb-2">
                         <div v-if="newExpense.category === '交通' && newExpense.item !== '其他交通'">
-                            <select v-model="newExpense.item" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                            <select v-model="newExpense.item" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500">
                                 <option value="">請選擇交通方式 (非必填)</option>
-                                <option value="巴士">巴士</option>
-                                <option value="地鐵">地鐵</option>
-                                <option value="的士">的士</option>
-                                <option value="跨境交通">跨境交通</option>
-                                <option value="其他交通">其他</option>
+                                <option value="巴士">巴士</option><option value="地鐵">地鐵</option><option value="的士">的士</option>
+                                <option value="跨境交通">跨境交通</option><option value="其他交通">其他</option>
                             </select>
                         </div>
-                        <div v-else-if="newExpense.category === '交通' && newExpense.item === '其他交通'">
-                               <input v-model="newExpense.item" placeholder="請輸入交通簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                        </div>
-                        <div v-else>
-                            <input v-model="newExpense.item" placeholder="簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
-                        </div>
+                        <input v-else v-model="newExpense.item" placeholder="簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm">
                     </div>
-                    
                     <div class="flex gap-2">
-                            <select v-model="newExpense.category" class="w-1/5 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                                <option value="吃喝">吃喝</option>
-                                <option value="交通">交通</option>
-                                <option value="購物">購物</option>
-                                <option value="門票">門票</option>
-                                <option value="其他">其他</option>
-                            </select>
-                            <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="w-1/2 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500 text-right">
-                            <select v-model="newExpense.currency" class="w-1/4 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                                <option value="HKD">HKD</option>
-                                <option value="RMB">RMB</option>
-                                <option value="TWD">TWD</option>
-                            </select>
+                        <select v-model="newExpense.category" class="w-1/3 p-3 border rounded-xl text-sm bg-white">
+                            <option value="吃喝">吃喝</option><option value="交通">交通</option>
+                            <option value="購物">購物</option><option value="門票">門票</option><option value="其他">其他</option>
+                        </select>
+                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="w-1/3 p-3 border rounded-xl text-sm text-right">
+                        <select v-model="newExpense.currency" class="w-1/4 p-3 border rounded-xl text-sm bg-white">
+                            <option value="HKD">HKD</option><option value="RMB">RMB</option><option value="TWD">TWD</option>
+                        </select>
                     </div>
-
-                    <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
-                        <option value="現金">現金</option>
-                        <option value="信用卡">信用卡</option>
-                        <option value="八達通">八達通</option>
-                        <option value="電子支付">電子支付</option>
-                        <option value="其他">其他</option>
+                    <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white mt-2">
+                         <option value="現金">現金</option><option value="信用卡">信用卡</option><option value="八達通">八達通</option><option value="電子支付">電子支付</option><option value="其他">其他</option>
                     </select>
-                    <button @click="addExpense" :disabled="!newExpense.amount" class="w-full bg-orange-500 disabled:opacity-50 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
+                    <button @click="addExpense" :disabled="!newExpense.amount" class="w-full bg-orange-500 text-white p-3 rounded-xl font-bold shadow-lg mt-2 transition active:scale-95">新增支出</button>
                 </div>
-
-                <div v-for="(exp, index) in expenses" :key="exp.id" class="p-3 border-b border-slate-200 hover:bg-slate-50 transition duration-100">
-                    <div v-if="!exp.isEditing" class="flex justify-between items-start text-sm">
-                        <div class="flex-1">
-                            <span class="font-bold text-slate-800">{{ exp.item }}</span>
-                            <small class="text-slate-400 block">{{ getCategoryLabel(exp.category) }} ({{ exp.method }})</small>
-                        </div>
+                <div v-for="(exp, index) in expenses" :key="exp.id" class="p-3 border-b border-slate-200">
+                    <div class="flex justify-between items-start text-sm">
+                        <div class="flex-1"><span class="font-bold text-slate-800">{{ exp.item }}</span><small class="text-slate-400 block">{{ getCategoryLabel(exp.category) }} ({{ exp.method }})</small></div>
                         <div class="text-right">
                             <span class="font-medium text-red-500 text-base block">- {{ exp.currency }} {{ exp.amount }}</span>
-                            <span v-if="exp.currency !== 'TWD'" class="text-xs text-slate-500">
-                                (約 TWD {{ convertToTWD(exp.amount, exp.currency).toFixed(0) }})
-                            </span>
+                            <span v-if="exp.currency !== 'TWD'" class="text-xs text-slate-500">(約 TWD {{ convertToTWD(exp.amount, exp.currency).toFixed(0) }})</span>
                             <div class="flex justify-end gap-3 pt-1 mt-1">
-                                <button @click="toggleEdit(exp)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
-                                <button @click="deleteExpense(exp.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
+                                <button @click="deleteExpense(exp.id)" class="text-xs text-red-500 font-bold">刪除</button>
                             </div>
                         </div>
-                    </div>
-
-                    <div v-else class="p-2 bg-white rounded-lg border border-blue-300">
-                            <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
-                            
-                            <div v-if="exp.category === '交通' && exp.item === '其他交通'">
-                                 <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div v-else-if="exp.category === '交通'">
-                                 <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
-                                     <option value="巴士">巴士</option>
-                                     <option value="地鐵">地鐵</option>
-                                     <option value="的士">的士</option>
-                                     <option value="跨境交通">跨境交通</option>
-                                     <option value="其他交通">其他</option>
-                                 </select>
-                            </div>
-                            <div v-else>
-                                 <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <div class="flex gap-2 mb-2">
-                                 <select v-model="exp.category" class="w-1/3 p-2 border rounded-lg text-sm bg-white">
-                                     <option value="吃喝">吃喝</option>
-                                     <option value="交通">交通</option>
-                                     <option value="購物">購物</option>
-                                     <option value="門票">門票</option>
-                                     <option value="其他">其他</option>
-                                 </select>
-                                 <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 text-right">
-                                  <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
-                                      <option value="HKD">HKD</option>
-                                      <option value="RMB">RMB</option>
-                                      <option value="TWD">TWD</option>
-                                  </select>
-                            </div>
-                            <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
-                                 <option value="現金">現金</option>
-                                 <option value="信用卡">信用卡</option>
-                                 <option value="八達通">八達通</option>
-                                 <option value="電子支付">電子支付</option>
-                                 <option value="其他">其他</option>
-                            </select>
-
-                            <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
-                                     儲存修改 <i class="fa-solid fa-save ml-1"></i>
-                            </button>
                     </div>
                 </div>
             </section>
 
             <section v-if="currentTab === 'wishlist'" class="space-y-4">
                 <div class="mb-4">
-                    <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white shadow-md focus:ring-2 focus:ring-orange-500">
-                        <option value="全部">所有人 (顯示所有願望)</option>
-                        <option v-for="member in members" :key="member" :value="member">{{ member }}</option>
+                    <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white">
+                        <option value="全部">所有人</option><option v-for="member in members" :key="member" :value="member">{{ member }}</option>
                     </select>
                 </div>
-
                 <div class="flex gap-2 mb-6">
                     <select v-model="newWishItem.member" class="p-3 border rounded-xl text-sm bg-white font-medium">
                         <option v-for="member in members" :key="member + '_add'" :value="member">{{ member }}</option>
                     </select>
-                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-lg text-sm focus:ring-orange-500 focus:border-orange-500">
+                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-lg text-sm focus:ring-orange-500">
                     <button @click="addWishItem" class="bg-slate-900 text-white px-4 rounded-xl active:scale-95 transition"><i class="fa-solid fa-plus"></i></button>
                 </div>
-
-                <div v-if="filteredWishlist.length > 0" class="space-y-2">
-                    <div v-for="(item, index) in filteredWishlist" :key="item.id" class="flex items-center p-3 bg-slate-50 rounded-xl justify-between">
-                        <div class="flex items-center">
-                            <input type="checkbox" v-model="item.done" class="mr-3 w-5 h-5 accent-orange-500">
-                            <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.item }}</span>
-                        </div>
-                        <span v-if="selectedMember === '全部'" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ item.member }}</span>
-                        
-                        <button @click="deleteWishItem(item.id)" class="ml-3 text-red-500 hover:text-red-700">
-                            <i class="fa-solid fa-times text-xs"></i>
-                        </button>
+                <div v-for="(item, index) in filteredWishlist" :key="item.id" class="flex items-center p-3 bg-slate-50 rounded-xl justify-between mb-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" v-model="item.done" @change="syncToCloud" class="mr-3 w-5 h-5 accent-orange-500">
+                        <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.member }}: {{ item.item }}</span>
                     </div>
-                </div>
-                <div v-else class="text-center text-slate-500 p-8 border border-dashed rounded-xl">
-                    <i class="fa-solid fa-face-frown text-2xl mb-2"></i>
-                    <p>{{ selectedMember }} 的願望清單是空的！</p>
+                    <button @click="deleteWishItem(item.id)" class="text-red-500"><i class="fa-solid fa-times text-xs"></i></button>
                 </div>
             </section>
-
         </main>
         
+        <div v-if="isDetailModalOpen && selectedDayDetails" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">
+                        {{ isEditMode ? '編輯行程' : selectedDayDetails.date + ' 詳情' }}
+                    </h3>
+                    <button @click="closeModal" class="text-gray-500 hover:text-gray-800"><i class="fa-solid fa-times text-lg"></i></button>
+                </div>
+
+                <div v-if="!isEditMode" class="space-y-4">
+                    <p class="text-sm text-slate-600 mb-4">{{ selectedDayDetails.summary }}</p>
+                    <div v-for="(item, index) in selectedDayDetails.details" :key="index" class="p-3 border-l-4 border-orange-500 bg-slate-50 transition duration-150">
+                        <p class="font-bold text-slate-800 mb-1 flex items-start text-sm">
+                            <i class="fa-solid fa-location-dot mr-2 mt-1 text-orange-500 flex-shrink-0"></i> 
+                            <span class="flex-grow">
+                                <span v-if="item.time" class="text-orange-600 mr-2 font-mono">{{ item.time }}</span>
+                                <span>{{ item.name }}</span>
+                            </span>
+                        </p>
+                        <p v-if="item.note" class="text-xs text-slate-500 ml-5">{{ item.note }}</p>
+                    </div>
+                    <button @click="startEdit" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold mt-4"><i class="fa-solid fa-edit mr-1"></i> 編輯此日行程</button>
+                </div>
+
+                <div v-else class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">簡述</label>
+                        <input v-model="editBuffer.desc" class="w-full p-2 border rounded mt-1 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">詳細描述</label>
+                        <textarea v-model="editBuffer.summary" rows="2" class="w-full p-2 border rounded mt-1 text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">住宿備註</label>
+                        <input v-model="editBuffer.accommodation_note" class="w-full p-2 border rounded mt-1 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">詳細行程 (每行: 時間|事項)</label>
+                        <textarea v-model="detailsString" rows="6" class="w-full p-2 border rounded mt-1 text-sm font-mono" placeholder="10:00|出發..."></textarea>
+                        <p class="text-[10px] text-slate-400 mt-1">格式範例: 12:00|抵達香港 (若無時間直接寫事項)</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="saveEdit" class="flex-1 bg-green-600 text-white p-2 rounded-xl font-bold hover:bg-green-700">儲存雲端</button>
+                        <button @click="isEditMode = false" class="flex-1 bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div v-if="isStatsModalOpen" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
             <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -391,399 +286,200 @@
                         <i class="fa-solid fa-times text-lg"></i>
                     </button>
                 </div>
-
-                <div class="space-y-4">
-                    <div class="w-full h-64 flex justify-center">
-                        <canvas id="expenseChart"></canvas>
-                    </div>
-
-                    <h4 class="font-bold text-sm text-orange-600 mt-4">總支出 TWD ${{ totalExpenseTWD.toFixed(0) }}</h4>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div v-for="(amount, category) in categoryTotals" :key="category" class="flex justify-between border-b pb-1">
-                            <span>{{ category }}</span>
-                            <span class="font-medium text-slate-700">TWD {{ amount.toFixed(0) }}</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="w-full h-64 flex justify-center"><canvas id="expenseChart"></canvas></div>
             </div>
         </div>
-
-        <div v-if="isDetailModalOpen && selectedDayDetails" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-xl font-bold text-slate-800">
-                        {{ selectedDayDetails.city }} - {{ selectedDayDetails.date }} 詳情
-                    </h3>
-                    <button @click="isDetailModalOpen = false" class="text-gray-500 hover:text-gray-800">
-                        <i class="fa-solid fa-times text-lg"></i>
-                    </button>
-                </div>
-
-                <div class="space-y-4">
-                    <p class="text-sm text-slate-600 mb-4">{{ selectedDayDetails.summary }}</p>
-                    
-                    <h4 class="font-bold text-orange-600 text-lg border-b pb-1 mb-3">當日行程點</h4>
-                    
-                    <div v-for="(item, index) in selectedDayDetails.details" :key="index" class="p-3 border-l-4 border-slate-200 hover:bg-slate-50 transition duration-150">
-                        <p class="font-bold text-slate-800 mb-1 flex items-start text-sm">
-                            <i class="fa-solid fa-location-dot mr-2 mt-1 text-orange-500 flex-shrink-0"></i> 
-                            <span class="flex-grow">
-                                <span v-if="item.time" class="text-slate-500 font-normal mr-1">{{ item.time }}:</span>
-                                
-                                <a v-if="item.link" :href="item.link" target="_blank" class="detail-link">
-                                    {{ item.name }} 
-                                    <i class="fa-solid fa-external-link-alt text-xs ml-1"></i>
-                                </a>
-                                <span v-else class="font-medium">{{ item.name }}</span>
-                            </span>
-                        </p>
-                        <p v-if="item.note" class="text-xs text-slate-500 ml-5">{{ item.note }}</p>
-                    </div>
-
-                    <div class="text-center pt-4">
-                           <button @click="isDetailModalOpen = false" class="w-full bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300 transition">
-                                 關閉
-                           </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
     </div>
+
 <script>
-    const { createApp, ref, computed, watch, nextTick } = Vue;
+    const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-    // --- Local Storage 助手函式：讀取與儲存通用邏輯 ---
+    // 🔥 Firebase 配置
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUJOYe8nisgggOU9iSbzoWHgid7Rf9rY0",
+        authDomain: "webapp-69d9d.firebaseapp.com",
+        projectId: "webapp-69d9d",
+        storageBucket: "webapp-69d9d.firebasestorage.app",
+        messagingSenderId: "920749669744",
+        appId: "1:920749669744:web:1928274d2fca3a0e8e23b5",
+        measurementId: "G-4X3ML4V0BN"
+    };
 
-    function loadData(key, defaultData = []) {
-        try {
-            const stored = localStorage.getItem(key);
-            const data = stored ? JSON.parse(stored) : defaultData;
-            
-            if (key === 'hk_trip_expenses') {
-                return data.map(item => ({ 
-                    id: item.id || Date.now() + Math.random(), 
-                    category: item.category || '其他', 
-                    isEditing: item.isEditing || false, 
-                    item: item.item || '', 
-                    ...item 
-                }));
-            }
-            return data;
-        } catch (e) {
-            console.error(`無法從 Local Storage 讀取資料: ${key}`, e);
-            return defaultData;
-        }
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function saveData(key, list) {
-        // 儲存前移除 UI 狀態（isEditing）
-        const cleanedList = list.map(({ isEditing, ...rest }) => rest);
-        localStorage.setItem(key, JSON.stringify(cleanedList));
-    }
-
-    // =======================================================
-    // 💡 輔助函式：將 'MM/DD' 轉換為帶有正確年份的 Date 物件 💡
-    // =======================================================
     function getComparableDate(dateString) {
         const [month, day] = dateString.split('/').map(Number);
-        
-        let year = 2025; // 預設年份為 2025
-        
-        // ** 修正年份判斷邏輯：跨 2025/2026 年 **
-        // 如果月份是 1 月（即 01/xx），則年份為 2026
-        if (month >= 1 && month <= 6) { 
-            year = 2026;
-        } else if (month === 12) { // 12/25 ~ 12/31
-            year = 2025;
-        } 
-        
-        // 注意：月份在 JS 中從 0 (一月) 開始，所以要減 1
+        let year = month === 1 ? 2026 : 2025;
         return new Date(year, month - 1, day);
     }
     
-    // -------------------------------------------------------
-    // Vue App 啟動前的數據處理 
-    // -------------------------------------------------------
-
-    // 🚩 數據修改區：行程與景點 🚩
+    // 原始數據
     const FIXED_SCHEDULE = [
-        { 
-            id: 1, date: '12/25', city: '香港', city_code: 'HK', 
-            desc: '【聖誕節主題】各自抵達香港、尖沙咀海港城燈飾', 
-            weather: '晴時多雲', temp: '18°C / 13°C',
-            summary: '聖誕節兩人各自抵港後會合，前往九龍區感受濃厚的聖誕氣氛和維港夜景。',
-            details: [
-                { name: '女友航班 BR869 (TPE) 抵港', time: '14:20 HKT', note: '兩人約在機場會合' },
-                { name: '您的航班 CX423 (KHH) 抵港', time: '15:00 HKT', note: '會合後，先回香港家安頓' },
-                { name: '尖沙咀 (Tsim Sha Tsui) 海港城/廣東道', time: '18:00', note: '觀賞聖誕大型燈飾佈置與維港夜景' },
-                { name: '聖誕晚餐與購物', time: '20:00', note: '在海旁或商場享用晚餐' },
-            ]
-        },
-        { 
-            id: 2, date: '12/26', city: '深圳', city_code: 'SZ', 
-            desc: '深圳一日遊：華僑城創意文化園（文青、美食）', 
-            weather: '晴朗', temp: '20°C / 15°C',
-            summary: '前往深圳體驗藝術氣息和文青風格的園區，並品嚐當地小吃。',
-            details: [
-                { name: '從香港家出發，經羅湖/福田口岸入境深圳', time: '09:00', note: '前往羅湖或福田口岸' },
-                { name: '華僑城創意文化園 (OCT Loft)', time: '11:00' },
-                { name: '深圳午餐：園區附近簡餐', time: '13:30' },
-                { name: '羅湖/福田口岸出境回港', time: '18:00', note: '返回香港的家' },
-            ]
-        },
-        { 
-            id: 3, date: '12/27', city: '香港', city_code: 'HK', 
-            desc: '離島/文化：南丫島或西九文化區（悠閒、藝術）', 
-            weather: '多雲', temp: '16°C / 11°C',
-            summary: '在緊張的跨年和廣州行前，選擇一處輕鬆悠閒的地點放鬆心情。',
-            details: [
-                { name: '選項一：南丫島一日遊', time: '10:00', note: '中環碼頭搭渡輪' },
-                { name: '選項二：西九文化區藝術巡禮', time: '13:00' },
-                { name: '油麻地晚餐與彌敦道散步', time: '19:30' },
-            ]
-        },
-        { 
-            id: 4, date: '12/28', city: '廣州', city_code: 'GZ', 
-            desc: '廣州第一日：廣州塔、珠江夜遊 (入住希岸酒店)', 
-            weather: '大雨', temp: '15°C / 10°C',
-            summary: '從香港前往廣州，入住酒店後，體驗廣州現代地標與珠江夜景。',
-            details: [
-                { name: '高鐵至廣州', time: '09:00' },
-                { name: '希岸酒店 Check-in', time: '13:00' },
-                { name: '越秀公園或天河體育中心商圈', time: '15:30' },
-                { name: '廣州塔 (小蠻腰) 或 珠江夜遊', time: '19:00' },
-            ]
-        }, 
-        { 
-            id: 5, date: '12/29', city: '廣州', city_code: 'GZ', 
-            desc: '廣州第二日：沙面島、永慶坊、地道粵式點心', 
-            weather: '晴時多雲', temp: '16°C / 11°C',
-            summary: '在廣州老城區感受歷史，品嚐地道的粵菜，傍晚返回香港的家。',
-            details: [
-                { name: '沙面島異國建築群', time: '10:00' },
-                { name: '永慶坊與粵式午餐', time: '13:00' },
-                { name: '搭高鐵返回香港', time: '17:00' },
-            ]
-        }, 
-        { 
-            id: 6, date: '12/30', city: '深圳', city_code: 'SZ', 
-            desc: '深圳二日遊：世界之窗 或 歡樂海岸 (返回香港家)', 
-            weather: '多雲', temp: '19°C / 14°C',
-            summary: '廣州返回後，前往深圳進行第二天的深度探索。',
-            details: [
-                { name: '入境深圳', time: '10:00' },
-                { name: '世界之窗 或 深圳灣公園', time: '13:00' },
-                { name: '傍晚返回香港', time: '19:00' },
-            ]
-        },
-        { 
-            id: 7, date: '12/31', city: '香港', city_code: 'HK', 
-            desc: '【重點行程】維港跨年煙火，準備迎新', 
-            weather: '晴朗', temp: '17°C / 12°C',
-            summary: '跨年夜當晚，在維多利亞港迎新，欣賞壯觀的煙火表演。',
-            details: [
-                { name: '休息準備跨年', time: '14:00' },
-                { name: '尖沙咀/灣仔海旁佔位', time: '19:00' },
-                { name: '維多利亞港跨年倒數', time: '23:30', note: '午夜 12 點煙火秀' },
-            ]
-        },
-        { 
-            id: 8, date: '01/01', city: '深圳', city_code: 'SZ', 
-            desc: '【重頭戲】機場接機直奔深圳，華強北、東門尋寶', 
-            weather: '小雨', temp: '18°C / 13°C',
-            summary: '接機後立即展開深圳之旅，從電子市場逛到美食老街，最後享受火鍋與按摩。',
-            details: [
-                { name: '接機及會合 (12:00 抵港)', time: '12:30', note: '預計 12:30 辦理完成出來' },
-                { name: '出發前往深圳', time: '13:30', note: '預計 13:30 到達深圳' },
-                { name: '深圳吃飯休息', time: '14:00' },
-                { name: '華強北電子市場', time: '15:30' },
-                { name: '東門老街逛街', time: '17:30' },
-                { name: '晚餐：汕頭牛肉火鍋', time: '19:30' },
-                { name: '按摩放鬆', time: '21:30' }
-            ]
-        }, 
-        { 
-            id: 9, date: '01/02', city: '香港', city_code: 'HK', 
-            desc: '深圳回港，油尖旺廟街與維港星光大道', 
-            weather: '晴時多雲', temp: '17°C / 12°C',
-            summary: '中午回港後放行李，接著在油尖旺一帶逛街，搭乘城巴欣賞城市美景。',
-            details: [
-                { name: '深圳吃早餐', time: '09:00' },
-                { name: '離開深圳', time: '11:00', note: '中午前離開' },
-                { name: '九龍灣放行李', time: '13:00' },
-                { name: '油尖旺逛街、廟街', time: '15:00' },
-                { name: '搭乘城巴觀光', time: '17:00', note: '預計 17:00 - 19:00 乘坐' },
-                { name: '維港星光大道夜遊', time: '19:30' }
-            ]
-        },
-        { 
-            id: 10, date: '01/03', city: '香港', city_code: 'HK', 
-            desc: '傳統推車早茶、銅鑼灣逛街、太平山夜景', 
-            weather: '多雲', temp: '16°C / 11°C',
-            summary: '體驗經典的推車早茶，在銅鑼灣血拼，最後登上山頂俯瞰全港。',
-            details: [
-                { name: '早茶時光 (推車港式點心)', time: '09:30' },
-                { name: '銅鑼灣逛街 (Esprit 等)', time: '13:00' },
-                { name: '太平山頂纜車及夜景', time: '16:30' }
-            ]
-        },
-        { 
-            id: 11, date: '01/04', city: '香港 (離境)', city_code: 'HK', 
-            desc: '回程日：前往機場，結束豐富旅程', 
-            weather: '晴朗', temp: '19°C / 14°C',
-            summary: '最後的早餐後，準時前往機場搭機。',
-            details: [
-                { name: '抵達香港國際機場 (HKIA)', time: '11:30', note: '辦理登機手續' },
-                { name: '回程航班', time: '13:30', note: '帶著滿滿回憶返家' }
-            ]
-        }
+        { id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '聖誕節：抵港、海港城燈飾', weather: '晴時多雲', temp: '18°C / 13°C', summary: '聖誕抵港會合，晚上賞燈飾。', accommodation_note: '晚上住：香港的家 (1)', details: [{ time: '15:00', name: '兩人各自抵港' }, { time: '18:00', name: '海港城燈飾' }, { time: '20:00', name: '聖誕晚餐' }] },
+        { id: 2, date: '12/26', city: '香港', city_code: 'HK', desc: '香港行程：Partyroom 交換禮物', weather: '晴朗', temp: '20°C / 15°C', summary: '今日在香港活動，晚上的重頭戲是 Partyroom 交換禮物。', accommodation_note: '晚上住：香港的家 (1)', details: [{ name: '白天：香港自由活動' }, { name: '晚上：Partyroom 交換禮物' }] },
+        { id: 3, date: '12/27', city: '香港', city_code: 'HK', desc: '離島/文化：南丫島或西九文化區', weather: '多雲', temp: '16°C / 11°C', summary: '悠閒行程。', accommodation_note: '晚上住：香港的家 (1)', details: [{ time: '10:00', name: '南丫島一日遊' }] },
+        { id: 4, date: '12/28', city: '廣州', city_code: 'GZ', desc: '廣州第一日：廣州塔、珠江夜遊', weather: '大雨', temp: '15°C / 10°C', summary: '搭高鐵前往廣州。', accommodation_note: '晚上住：希岸酒店 (2)', details: [{ time: '09:00', name: '高鐵至廣州' }, { time: '19:00', name: '廣州塔/珠江夜遊' }] },
+        { id: 5, date: '12/29', city: '廣州', city_code: 'GZ', desc: '廣州第二日：沙面島、地道粵式點心', weather: '晴時多雲', temp: '16°C / 11°C', summary: '漫步老城，傍晚回港。', accommodation_note: '晚上住：香港的家 (1)', details: [{ time: '10:00', name: '沙面島散步' }, { time: '17:00', name: '搭高鐵回港' }] },
+        { id: 6, date: '12/30', city: '深圳', city_code: 'SZ', desc: '深圳二日遊', weather: '多雲', temp: '19°C / 14°C', summary: '前往深圳深度探索。', accommodation_note: '晚上住：香港的家 (1)', details: [{ time: '10:00', name: '前往深圳' }] },
+        { id: 7, date: '12/31', city: '深圳/香港', city_code: 'SZ', desc: '深圳遊玩、晚上回港跨年', weather: '晴朗', temp: '17°C / 12°C', summary: '日間在深圳，晚上返回維港跨年。', accommodation_note: '晚上住：香港的家 (1)', details: [{ name: '日間：深圳遊玩' }, { time: '23:30', name: '維港跨年倒數' }] },
+        { id: 8, date: '01/01', city: '深圳', city_code: 'SZ', desc: '接機、荔灣吃飯、華強北、火鍋按摩', weather: '小雨', temp: '18°C / 13°C', summary: '接機後直奔深圳展開購物美食行。', accommodation_note: '晚上住：深圳 (因1/2早晨在深圳)', details: [{ time: '12:00', name: '抵達香港' }, { time: '12:30', name: '離開機場' }, { time: '13:30', name: '抵達深圳' }, { time: '14:00', name: '荔灣吃飯' }, { name: '華強北' }, { name: '東門' }, { name: '潮發汕頭牛肉火鍋' }, { name: '按摩' }] },
+        { id: 9, date: '01/02', city: '香港', city_code: 'HK', desc: '回港油尖旺、城巴H2、星光大道', weather: '晴時多雲', temp: '17°C / 12°C', summary: '中午回港放行李，下午深度遊九龍。', accommodation_note: '晚上住：香港飯店 (3)', details: [{ time: '08:30', name: '出發' }, { name: '深圳吃早餐' }, { time: '10:30', name: '離開深圳' }, { time: '12:00', name: '到九龍灣放行李' }, { time: '12:30', name: '旺角茶餐廳吃飯' }, { time: '13:30', name: '旺角油麻地尖沙嘴' }, { time: '17:00', name: '城巴H2' }, { name: '天星小輪' }, { name: '星光大道' }, { name: '廟街夜市煲仔飯' }, { name: '回飯店' }] },
+        { id: 10, date: '01/03', city: '香港', city_code: 'HK', desc: '中環懷舊、銅鑼灣逛街、太平山', weather: '多雲', temp: '16°C / 11°C', summary: '走訪港島經典景點。', accommodation_note: '晚上住：香港飯店 (3)', details: [{ time: '08:00', name: '出發' }, { name: '九龍灣茶餐廳早餐' }, { name: '皇后像廣場' }, { name: '中環街市' }, { name: '半山手扶梯' }, { name: '大館' }, { name: '石板街' }, { time: '12:00', name: '中環蓮香樓' }, { name: '蘭芳園' }, { name: '銅鑼灣逛街' }, { name: '燒臘飯' }, { name: '糖水' }, { name: '中環' }] },
+        { id: 11, date: '01/04', city: '香港 (離境)', city_code: 'HK', desc: '最後早茶、前往機場', weather: '晴朗', temp: '19°C / 14°C', summary: '享用早茶後前往機場。', accommodation_note: 'N/A', details: [{ name: '觀塘早茶 or 冰室' }, { time: '10:30', name: '出發' }, { time: '11:30', name: '到機場' }] }
     ];
-    
-    const FIXED_MEMBERS = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
-    const defaultExpenses = []; 
-    const defaultWishlist = [{ id: 1, member: '橞宜', item: '小熊維尼公仔', done: false }];
 
-    const initialExpenses = loadData('hk_trip_expenses', defaultExpenses);
-    const initialWishlist = loadData('hk_trip_wishlist', defaultWishlist);
-
-    let nextExpenseId = (initialExpenses.length > 0 ? Math.max(...initialExpenses.map(e => e.id)) : 0) + 1;
-    let nextWishId = (initialWishlist.length > 0 ? Math.max(...initialWishlist.map(w => w.id)) : 0) + 1;
-
-    const RMB_RATE = 4.4; 
-    const HKD_RATE = 4.0;
-    
-    const CHART_COLORS = ['#FF6384', '#36A2EB', '#FFCD56', '#4BC0C0', '#9966FF', '#FF9F40'];
-    let expenseChartInstance = null;
-    
-    const CURRENT_WEATHER_SIMULATION = { description: '多雲時晴', iconClass: 'fa-cloud-sun' };
+    const APP_LIST = {
+        "🇨🇳 中國大陸 (深圳)": [
+            { name: "高德地圖", desc: "大陸導航必備", ios: "https://apps.apple.com/app/id461703208", android: "https://play.google.com/store/apps/details?id=com.autonavi.minimap", icon: "fa-solid fa-map-location-dot" },
+            { name: "滴滴出行", desc: "深圳叫車最方便", ios: "https://apps.apple.com/app/id554499054", android: "https://play.google.com/store/apps/details?id=com.sdu.didi.psnger", icon: "fa-solid fa-car" }
+        ],
+        "🇭🇰 香港": [
+            { name: "Octopus 八達通", desc: "交通、小額支付", ios: "https://apps.apple.com/app/id1113097184", android: "https://play.google.com/store/apps/details?id=com.octopuscards.nfc_reader", icon: "fa-solid fa-credit-card" },
+            { name: "MTR Mobile", desc: "港鐵路線規劃", ios: "https://apps.apple.com/app/id369210866", android: "https://play.google.com/store/apps/details?id=com.mtr.mtrmobile", icon: "fa-solid fa-train-subway" },
+            { name: "App 1933 (KMB)", desc: "九巴/龍運預報", ios: "https://apps.apple.com/hk/app/app1933-kmb-lwb/id1170003707", android: "https://play.google.com/store/apps/details?id=com.kmb.app1933", icon: "fa-solid fa-bus" },
+            { name: "Citybus 城巴", desc: "城巴路線查詢", ios: "https://apps.apple.com/hk/app/citybus-%E5%9F%8E%E5%B7%B4/id1616782622", android: "https://play.google.com/store/apps/details?id=com.citybus.app", icon: "fa-solid fa-bus-simple" },
+            { name: "Pokeguide", desc: "地鐵出口攻略", ios: "https://apps.apple.com/hk/app/pokeguide/id1076846983", android: "https://play.google.com/store/apps/details?id=com.pokeguide.android", icon: "fa-solid fa-person-walking-arrow-right" },
+            { name: "OpenRice 開飯喇", desc: "美食搜尋訂位", ios: "https://apps.apple.com/app/id321285226", android: "https://play.google.com/store/apps/details?id=com.openrice.android", icon: "fa-solid fa-utensils" }
+        ]
+    };
 
     createApp({
         setup() {
-            const currentTab = ref('itinerary'); 
-            const isStatsModalOpen = ref(false); 
-            const isDetailModalOpen = ref(false); 
-            const selectedDayDetails = ref(null);  
+            const currentTab = ref('itinerary');
+            const essentialsMode = ref('main');
+            const isStatsModalOpen = ref(false);
+            const isDetailModalOpen = ref(false);
+            const isEditMode = ref(false);
+            const selectedDayDetails = ref(null);
+            const dbStatus = ref('讀取中...');
+            
+            const editBuffer = ref({});
+            const detailsString = ref("");
+
+            // 🔥 修正：補上之前漏掉的變數宣告
+            const currentTime = ref("");
+            const currentFullDate = ref("");
             const currentDateTime = ref(new Date());
 
-            setInterval(() => { currentDateTime.value = new Date(); }, 1000);
+            const updateTime = () => {
+                const now = new Date();
+                currentDateTime.value = now;
+                currentTime.value = now.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                currentFullDate.value = now.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' });
+            };
             
-            const currentTime = computed(() => currentDateTime.value.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-            const currentFullDate = computed(() => currentDateTime.value.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' }));
-            
-            const todayHeaderWeather = computed(() => {
-                const todayDay = orderedSchedule.value.find(day => day.isToday);
-                if (todayDay) {
-                    return { city: todayDay.city.replace(' (當日往返)', '').replace(' (離境)', ''), weather: todayDay.weather, temp: todayDay.temp };
-                }
-                return null;
+            updateTime(); // 立即執行一次
+            setInterval(updateTime, 1000);
+
+            const schedule = ref([]);
+            const expenses = ref([]);
+            const wishlist = ref([]);
+            const appList = APP_LIST; 
+            const newExpense = ref({ item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' });
+            const members = ['爸爸', '媽媽', '橞宜', '柏呈', '協沛'];
+            const selectedMember = ref('全部');
+            const newWishItem = ref({ member: '橞宜', item: '' });
+            const calculator = ref({ amount: null, currency: 'HKD' });
+
+            onMounted(() => {
+                db.ref('tripData').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        schedule.value = data.schedule || [];
+                        expenses.value = data.expenses || [];
+                        wishlist.value = data.wishlist || [];
+                    } else {
+                        syncToCloud(true);
+                    }
+                    dbStatus.value = "已連線";
+                }, () => dbStatus.value = "連線失敗");
             });
 
-            const currentWeather = ref(CURRENT_WEATHER_SIMULATION);
-            const schedule = ref(FIXED_SCHEDULE);
-            const expenses = ref(initialExpenses);
-            const newExpense = ref({ item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' });
-            const members = FIXED_MEMBERS;
-            const wishlist = ref(initialWishlist);
-            const selectedMember = ref('全部'); 
-            const newWishItem = ref({ member: '橞宜', item: '' }); 
-            const calculator = ref({ amount: null, currency: 'HKD' });
+            const syncToCloud = (init = false) => {
+                const data = {
+                    schedule: init ? FIXED_SCHEDULE : JSON.parse(JSON.stringify(schedule.value)),
+                    expenses: JSON.parse(JSON.stringify(expenses.value)),
+                    wishlist: JSON.parse(JSON.stringify(wishlist.value))
+                };
+                if(init) schedule.value = FIXED_SCHEDULE;
+                db.ref('tripData').set(data);
+            };
 
             const orderedSchedule = computed(() => {
                 const now = currentDateTime.value;
                 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                return schedule.value.map(day => {
+                return [...schedule.value].sort((a, b) => getComparableDate(a.date) - getComparableDate(b.date)).map(day => {
                     const tripDate = getComparableDate(day.date);
-                    const isToday = tripDate.getFullYear() === today.getFullYear() && tripDate.getMonth() === today.getMonth() && tripDate.getDate() === today.getDate();
-                    return { ...day, isToday, tripDate };
-                }).sort((a, b) => a.tripDate - b.tripDate);
+                    return { ...day, isToday: tripDate.getTime() === today.getTime() };
+                });
             });
 
-            function getWeatherIcon(weather) {
-                if (!weather) return 'fa-question-circle';
-                if (weather.includes('晴') && !weather.includes('多雲')) return 'fa-sun'; 
-                if (weather.includes('晴時多雲')) return 'fa-cloud-sun'; 
-                if (weather.includes('雨') || weather.includes('大雨')) return 'fa-cloud-rain';
-                if (weather.includes('多雲') || weather.includes('陰')) return 'fa-cloud';
-                return 'fa-cloud-sun'; 
-            }
+            const todayHeaderWeather = computed(() => {
+                const todayDay = orderedSchedule.value.find(day => day.isToday);
+                return todayDay ? { city: todayDay.city.split('/')[0], weather: todayDay.weather, temp: todayDay.temp } : null;
+            });
+            const uniqueAccommodationNotes = computed(() => [...new Set(schedule.value.map(d => d.accommodation_note).filter(n => n && n !== 'N/A'))]);
 
-            function showDetails(day) { selectedDayDetails.value = day; isDetailModalOpen.value = true; }
-            function convertToTWD(amount, currency) {
-                amount = Number(amount) || 0;
-                switch (currency) {
-                    case 'RMB': return amount * RMB_RATE; 
-                    case 'HKD': return amount * HKD_RATE; 
-                    case 'TWD': return amount; 
-                    default: return 0;
+            function getWeatherIcon(w) { return w?.includes('晴') ? 'fa-sun' : w?.includes('雨') ? 'fa-cloud-rain' : 'fa-cloud'; }
+            function getCategoryLabel(c) { return c; }
+            function convertToTWD(a, c) { return (Number(a)||0) * (c === 'RMB' ? 4.4 : (c === 'HKD' ? 4.0 : 1)); }
+
+            function showDetails(day) {
+                selectedDayDetails.value = day;
+                editBuffer.value = JSON.parse(JSON.stringify(day));
+                detailsString.value = day.details.map(d => d.time ? `${d.time}|${d.name}` : d.name).join('\n');
+                isDetailModalOpen.value = true;
+                isEditMode.value = false;
+            }
+            function closeModal() { isDetailModalOpen.value = false; isEditMode.value = false; }
+            function startEdit() { isEditMode.value = true; }
+            function saveEdit() {
+                const newDetails = detailsString.value.split('\n').filter(l => l.trim()).map(line => {
+                    const parts = line.split('|');
+                    return parts.length > 1 ? { time: parts[0].trim(), name: parts[1].trim() } : { name: line.trim() };
+                });
+                const idx = schedule.value.findIndex(d => d.id === editBuffer.value.id);
+                if (idx !== -1) {
+                    schedule.value[idx] = { ...editBuffer.value, details: newDetails };
+                    selectedDayDetails.value = schedule.value[idx];
+                    syncToCloud();
+                    isEditMode.value = false;
                 }
             }
+
+            function addExpense() { if (newExpense.value.amount) { expenses.value.unshift({ ...newExpense.value, id: Date.now(), isEditing: false, item: newExpense.value.item || newExpense.value.category }); newExpense.value.amount = null; syncToCloud(); } }
+            function deleteExpense(id) { expenses.value = expenses.value.filter(e => e.id !== id); syncToCloud(); }
+            function toggleEdit(item) { item.isEditing = !item.isEditing; if(!item.isEditing) syncToCloud(); } 
+            function addWishItem() { if (newWishItem.value.item) { wishlist.value.push({ ...newWishItem.value, id: Date.now(), done: false }); newWishItem.value.item = ''; syncToCloud(); } }
+            function deleteWishItem(id) { wishlist.value = wishlist.value.filter(i => i.id !== id); syncToCloud(); }
             
-            function getCategoryLabel(category) {
-                switch (category) {
-                    case '吃喝': return '🍽️ 吃喝';
-                    case '交通': return '🚌 交通';
-                    case '購物': return '🛍️ 購物';
-                    case '門票': return '🎟️ 門票';
-                    default: return '💡 其他';
-                }
-            }
-
             const calculatedTWD = computed(() => convertToTWD(calculator.value.amount, calculator.value.currency));
+            const totalExpenseTWD = computed(() => expenses.value.reduce((acc, exp) => acc + convertToTWD(exp.amount, exp.currency), 0));
             const categoryTotals = computed(() => {
-                const totals = { '吃喝': 0, '交通': 0, '購物': 0, '門票': 0, '其他': 0 };
-                expenses.value.forEach(exp => {
-                    const twdAmount = convertToTWD(exp.amount, exp.currency);
-                    const key = exp.category || '其他'; 
-                    if (totals.hasOwnProperty(key)) totals[key] += twdAmount; else totals['其他'] += twdAmount;
-                });
-                return totals;
+                const t = { '吃喝': 0, '交通': 0, '購物': 0, '門票': 0, '其他': 0 };
+                expenses.value.forEach(e => t[e.category] += convertToTWD(e.amount, e.currency));
+                return t;
             });
+            const filteredWishlist = computed(() => selectedMember.value === '全部' ? wishlist.value : wishlist.value.filter(i => i.member === selectedMember.value));
 
-            const totalExpenseTWD = computed(() => expenses.value.reduce((total, exp) => total + convertToTWD(exp.amount, exp.currency), 0));
-            function addExpense() {
-                if (newExpense.value.amount) {
-                    expenses.value.unshift({ ...newExpense.value, id: nextExpenseId++, isEditing: false, item: newExpense.value.item || newExpense.value.category });
-                    newExpense.value = { item: '', amount: null, currency: 'HKD', method: '現金', category: '吃喝' };
-                }
-            }
-            function toggleEdit(item) { item.isEditing = !item.isEditing; if (!item.isEditing && !item.item) item.item = item.category; }
-            function deleteExpense(id) { expenses.value = expenses.value.filter(exp => exp.id !== id); }
-
+            let expenseChartInstance = null;
             function renderChart() {
-                if (expenseChartInstance) expenseChartInstance.destroy(); 
+                if (expenseChartInstance) expenseChartInstance.destroy();
                 const ctx = document.getElementById('expenseChart').getContext('2d');
-                const totals = categoryTotals.value;
-                const labels = Object.keys(totals).filter(key => totals[key] > 0);
-                const data = labels.map(key => totals[key]);
-                expenseChartInstance = new Chart(ctx, {
-                    type: 'doughnut', 
-                    data: { labels, datasets: [{ data, backgroundColor: CHART_COLORS.slice(0, labels.length), hoverOffset: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-                });
+                expenseChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(categoryTotals.value).filter(k=>categoryTotals.value[k]>0), datasets: [{ data: Object.values(categoryTotals.value).filter(v=>v>0), backgroundColor: ['#FF6384', '#36A2EB', '#FFCD56', '#4BC0C0', '#9966FF'] }] } });
             }
-            
             function openStatsModal() { isStatsModalOpen.value = true; nextTick(() => renderChart()); }
-            watch(() => newExpense.value.category, () => { newExpense.value.item = ''; });
 
-            const filteredWishlist = computed(() => {
-                if (!wishlist.value) return [];
-                if (selectedMember.value === '全部') return [...wishlist.value].sort((a, b) => members.indexOf(a.member) - members.indexOf(b.member));
-                return wishlist.value.filter(item => item.member === selectedMember.value);
-            });
-            function addWishItem() {
-                if (newWishItem.value.item && newWishItem.value.member) {
-                    wishlist.value.push({ id: nextWishId++, member: newWishItem.value.member, item: newWishItem.value.item, done: false });
-                    newWishItem.value.item = ''; 
-                    selectedMember.value = newWishItem.value.member;
-                }
-            }
-            function deleteWishItem(id) { wishlist.value = wishlist.value.filter(item => item.id !== id); }
-            watch(expenses, (newList) => saveData('hk_trip_expenses', newList), { deep: true });
-            watch(wishlist, (newList) => saveData('hk_trip_wishlist', newList), { deep: true });
-
-            return { currentTab, isStatsModalOpen, isDetailModalOpen, selectedDayDetails, openStatsModal, showDetails, schedule, orderedSchedule, getWeatherIcon, currentTime, currentFullDate, currentWeather, todayHeaderWeather, expenses, newExpense, totalExpenseTWD, categoryTotals, addExpense, deleteExpense, toggleEdit, getCategoryLabel, convertToTWD, calculator, calculatedTWD, members, selectedMember, wishlist, filteredWishlist, newWishItem, addWishItem, deleteWishItem };
+            return { 
+                currentTab, essentialsMode, isStatsModalOpen, isDetailModalOpen, isEditMode, selectedDayDetails, dbStatus,
+                currentTime, currentFullDate, todayHeaderWeather, orderedSchedule, appList, uniqueAccommodationNotes,
+                expenses, newExpense, totalExpenseTWD, categoryTotals, wishlist, members, selectedMember, newWishItem, calculator, calculatedTWD,
+                editBuffer, detailsString,
+                showDetails, closeModal, startEdit, saveEdit, syncToCloud,
+                addExpense, deleteExpense, toggleEdit, addWishItem, deleteWishItem, openStatsModal,
+                getWeatherIcon, getCategoryLabel, convertToTWD, filteredWishlist
+            };
         }
     }).mount('#app');
 </script>
