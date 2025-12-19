@@ -17,15 +17,51 @@
         .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
         .fa-solid { margin-right: 5px; } 
 
-        .card-bg-HK { background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/6a0dad/ffffff&text=Hong+Kong'); background-size: cover; background-position: center; }
-        .card-bg-SZ { background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/004d40/ffffff&text=Shenzhen'); background-size: cover; background-position: center; }
-        .card-bg-GZ { background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/1a73e8/ffffff&text=Guangzhou'); background-size: cover; background-position: center; }
-
-        .card-bg-default { background-color: #374151; }
-        .weather-info { display: flex; align-items: center; font-size: 0.8rem; text-align: right; margin-left: auto; padding-left: 8px; }
-        .detail-link { font-weight: bold; color: #1a73e8; transition: color 0.15s; }
-        .detail-link:hover { color: #0056b3; text-decoration: underline; }
+        /* 【香港背景：紫色系】 */
+        .card-bg-HK { 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), 
+            url('https://dummyimage.com/600x80/6a0dad/ffffff&text=Hong+Kong'); /* 紫色 */
+            background-size: cover; 
+            background-position: center;
+        }
         
+        /* 深圳背景：綠色系 */
+        .card-bg-SZ { 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/004d40/ffffff&text=Shenzhen'); /* 深綠色 */
+            background-size: cover; 
+            background-position: center;
+        }
+
+        /* 【廣州背景：藍色系】 */
+        .card-bg-GZ { 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/1a73e8/ffffff&text=Guangzhou'); /* 藍色 */
+            background-size: cover; 
+            background-position: center;
+        }
+
+        .card-bg-default {
+            background-color: #374151; /* slate-700 fallback */
+        }
+        
+        .weather-info {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-left: auto;
+            padding-left: 8px; 
+        }
+
+        /* 景點連結樣式 */
+        .detail-link {
+            font-weight: bold;
+            color: #1a73e8; /* 藍色 */
+            transition: color 0.15s;
+        }
+        .detail-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
         [v-cloak] { display: none; }
     </style>
 </head>
@@ -37,18 +73,21 @@
                 <div>
                     <h1 class="text-xl font-bold italic">跨年旅行 <span class="text-orange-500">2025-2026</span></h1>
                     <p class="text-xs opacity-75 flex items-center">
-                        <span v-if="dbStatus === '已連線'" class="text-green-400"><i class="fa-solid fa-check-circle"></i> 已連線雲端</span>
-                        <span v-else class="text-yellow-400"><i class="fa-solid fa-spinner fa-spin"></i> {{ dbStatus }}</span>
+                        <span v-if="dbStatus === '已連線'" class="text-green-400 mr-2"><i class="fa-solid fa-cloud"></i> 雲端已連線及同步</span>
+                        <span v-else class="text-yellow-400 mr-2"><i class="fa-solid fa-spinner fa-spin"></i> {{ dbStatus }}</span>
                     </p>
                 </div>
+                
                 <div class="text-right text-sm">
                     <p class="font-bold text-orange-400">{{ currentFullDate }}</p>
                     <p class="font-light text-xl leading-none">{{ currentTime }}</p>
+                    
                     <div v-if="todayHeaderWeather" class="flex items-center justify-end opacity-90 mt-1 space-x-1">
                         <i :class="getWeatherIcon(todayHeaderWeather.weather)" class="fa-solid text-yellow-300 text-sm"></i>
                         <span class="text-xs font-medium">{{ todayHeaderWeather.weather }}</span>
                         <span class="text-xs opacity-75">({{ todayHeaderWeather.city }})</span>
                     </div>
+                    <div v-else class="h-4"></div> 
                 </div>
             </div>
         </header>
@@ -57,15 +96,19 @@
             <button @click="currentTab = 'itinerary'" :class="{'tab-active': currentTab === 'itinerary'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-calendar-days block text-lg mb-1"></i>行程</button>
             <button @click="currentTab = 'finance'" :class="{'tab-active': currentTab === 'finance'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-wallet block text-lg mb-1"></i>記帳</button>
             <button @click="currentTab = 'wishlist'" :class="{'tab-active': currentTab === 'wishlist'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-gift block text-lg mb-1"></i>願望</button>
+            
             <a href="https://www.gbaweather.net/tc/" target="_blank" class="py-4 flex-1 text-sm flex flex-col items-center justify-center text-slate-400 hover:text-orange-500 transition duration-150">
-                <i class="fa-solid fa-cloud-sun block text-lg mb-1"></i>天氣
+                <i class="fa-solid fa-cloud-sun block text-lg mb-1"></i>
+                天氣
             </a>
-            <button @click="currentTab = 'essentials'; essentialsMode = 'main'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-bell block text-lg mb-1"></i>重要資訊</button>
+            
+            <button @click="currentTab = 'essentials'" :class="{'tab-active': currentTab === 'essentials'}" class="py-4 flex-1 text-sm whitespace-nowrap px-2"><i class="fa-solid fa-bell block text-lg mb-1"></i>重要資訊</button>
         </nav>
 
         <main class="p-4">
             
             <section v-if="currentTab === 'itinerary'" class="space-y-4">
+                
                 <div class="bg-slate-200 p-4 rounded-2xl mb-4 shadow-inner">
                     <h3 class="font-bold text-slate-800 mb-2 flex justify-between items-center">
                         匯率計算機 (TWD) <i class="fa-solid fa-calculator"></i>
@@ -80,13 +123,25 @@
                     <p v-if="calculator.amount > 0" class="text-center text-lg font-bold text-orange-700">
                         = ${{ calculatedTWD.toFixed(2) }} TWD
                     </p>
+                    <p v-else class="text-center text-sm text-slate-500">
+                        請輸入金額以開始計算
+                    </p>
                 </div>
                 <div v-for="day in orderedSchedule" :key="day.id" @click="showDetails(day)" 
-                    class="bg-white rounded-xl shadow-lg overflow-hidden transition active:scale-95 cursor-pointer relative"
-                    :class="{'ring-4 ring-red-500/70 shadow-2xl bg-yellow-50': day.isToday}"> 
-                    <div v-if="day.isToday" class="absolute top-0 left-0 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-br-xl z-10">📌 今日行程</div>
-                    <div :class="`card-bg-${day.city_code}`" class="h-16 w-full flex justify-between items-center p-3 text-white">
+                    class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl cursor-pointer relative"
+                    :class="{
+                        'ring-4 ring-red-500/70 shadow-2xl bg-yellow-50': day.isToday
+                    }"> 
+                    
+                    <div v-if="day.isToday" class="absolute top-0 left-0 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-br-xl z-10">
+                        📌 今日行程
+                    </div>
+
+                    <div :class="`card-bg-${day.city_code}`"
+                        class="h-16 w-full flex justify-between items-center p-3 text-white">
+                        
                         <span class="text-xl font-extrabold tracking-wider mr-2">{{ day.city }}</span>
+                        
                         <div class="weather-info">
                             <i :class="getWeatherIcon(day.weather)" class="fa-solid mr-1 text-yellow-300 text-lg"></i>
                             <div class="flex flex-col items-end leading-none">
@@ -95,6 +150,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="p-3 border-l-4 border-orange-500"> 
                         <span class="text-lg font-extrabold text-slate-800 block mb-1">{{ day.date }}</span>
                         <p class="text-sm text-slate-700 truncate">{{ day.desc }}</p>
@@ -107,33 +163,73 @@
 
             <section v-if="currentTab === 'essentials'" class="space-y-6">
                 <div v-if="essentialsMode === 'main'" class="space-y-6">
+                    
                     <button @click="essentialsMode = 'apps'" class="w-full bg-slate-900 text-white p-4 rounded-xl shadow-lg flex items-center justify-between transition active:scale-95">
                         <span class="font-bold text-lg"><i class="fa-solid fa-mobile-screen-button text-orange-500 mr-2"></i> 深圳/香港必備 App 下載</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
+
                     <div class="bg-green-50 p-4 rounded-xl shadow-md border-l-4 border-green-500">
                         <h3 class="font-bold text-green-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-plane-departure mr-2"></i> 航班資訊</h3>
                         <div class="space-y-2 text-sm">
+                            <a href="https://booking.evaair.com/flyeva/eva/b2c/manage-your-trip/online-checked-in-login.aspx?lang=zh-tw" target="_blank" class="font-bold text-blue-700 hover:text-blue-500 hover:underline transition duration-150 block">
+                                按此於起飛前 48 小時內辦理線上報到
+                            </a>
+                            <hr class="border-green-300">
                             <p><span class="font-semibold text-slate-900">去程 (長榮BR867):</span> 2026/01/01 (09:50 - 11:50)</p>
                             <p><span class="font-semibold text-slate-900">回程 (長榮BR868):</span> 2026/01/04 (13:30 - 15:20)</p>
                         </div>
                     </div>
+
                     <div class="bg-blue-50 p-4 rounded-xl shadow-md border-l-4 border-blue-500">
-                        <h3 class="font-bold text-blue-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿</h3>
-                        <div v-for="note in uniqueAccommodationNotes" :key="note" class="text-sm mb-2 border-b border-blue-100 pb-1 last:border-0">
-                            <i class="fa-solid fa-check text-blue-500 mr-1 text-xs"></i> {{ note }}
+                        <h3 class="font-bold text-blue-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-house-user mr-2"></i> 住宿地址</h3>
+
+                        <div class="mb-4 pb-3 border-b border-blue-200">
+                            <p class="font-bold text-base text-slate-900 mb-1">🇨🇳 深圳</p>
+                            
+                            <a href="https://tw.trip.com/hotels/shenzhen-hotel-detail-41520773/bangtuo-meinuo-executive-apartment/" target="_blank" class="font-bold text-orange-600 hover:text-orange-500 hover:underline transition duration-150 text-base block">
+                                邦拓美諾行政公寓（深圳前海廣場店）
+                            </a>
+                            
+                            <p class="text-xs text-slate-600 mt-1">
+                                南山區, 月亮灣大道1104號佳兆業前海廣場二期B座5樓506室
+                            </p>
+                        
                         </div>
-                        <div class="mt-2 text-xs text-slate-500">
-                            <p><strong>🇨🇳 深圳：</strong>南山區, 月亮灣大道1104號佳兆業前海廣場二期B座5樓506室</p>
-                            <p><strong>🇭🇰 香港：</strong>觀塘區, 九龍灣宏光道15號</p>
+
+                        <div>
+                            <p class="font-bold text-base text-slate-900 mb-1">🇭🇰 香港</p>
+                            
+                            <a href="https://tw.trip.com/hotels/hong-kong-hotel-detail-7114825/camlux-hotel/" target="_blank" class="font-bold text-orange-600 hover:text-orange-500 hover:underline transition duration-150 text-base block">
+                                香港君立飯店
+                            </a>
+                            
+                            <p class="text-xs text-slate-600 mt-1">
+                                觀塘區, 九龍灣宏光道15號
+                            </p>
+                            <a href="https://www.google.com/maps/place/%E5%90%9B%E7%AB%8B%E9%85%92%E5%BA%97/@22.3237639,114.2034422,17z/data=!3m1!4b1!4m9!3m8!1s0x34040132e4727759:0xaefe60d32380705b!5m2!4m1!1i2!8m2!3d22.3237639!4d114.2060171!16s%2Fg%2F11c5s98sdf?entry=ttu&g_ep=EgoyMDI1MTIwMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">在 Google 地圖上查看 <i class="fa-solid fa-location-dot ml-1"></i></a>
                         </div>
                     </div>
+
                     <div class="bg-red-50 p-4 rounded-xl shadow-md border-l-4 border-red-500">
-                        <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話</h3>
+                        <h3 class="font-bold text-red-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-phone-volume mr-2"></i> 緊急求助電話（點擊撥出）</h3>
                         <div class="flex justify-around text-sm font-medium">
-                            <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1">🇭🇰 999</a>
-                            <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1">🇨🇳 110</a>
+                            <a href="tel:999" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
+                                🇭🇰 **香港：** <span class="font-black text-xl">999</span>
+                            </a>
+                            <a href="tel:110" class="text-center text-slate-700 hover:text-red-600 p-1 rounded-md transition duration-150">
+                                🇨🇳 **中國大陸 ：** <span class="font-black text-xl">110</span>
+                            </a>
                         </div>
+                    </div>
+
+                    <div class="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
+                        <h3 class="font-bold text-yellow-800 text-lg mb-2 flex items-center"><i class="fa-solid fa-exclamation-circle mr-2"></i> 旅遊注意事項</h3>
+                        <ul class="list-disc list-inside text-sm space-y-1 text-slate-700">
+                            <li>**電源：** 220V部分電器需使用轉接頭及變壓器。</li>
+                            <li>**入境：** 不可攜帶加熱煙及多於19支香煙入境 。</li>
+                            <li>**證件：** 若未隨身攜帶身份證明文件屬於違法</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -141,104 +237,246 @@
                     <button @click="essentialsMode = 'main'" class="text-slate-500 font-bold mb-2 flex items-center hover:text-slate-800">
                         <i class="fa-solid fa-chevron-left mr-2"></i> 返回重要資訊
                     </button>
+
+                    <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg mb-4">
+                        <h3 class="font-bold text-lg mb-1"><i class="fa-solid fa-download mr-2"></i>行前必備 App</h3>
+                        <p class="text-xs opacity-80">建議在出發前完成下載並註冊帳號</p>
+                    </div>
+
                     <div v-for="(apps, region) in appList" :key="region">
-                        <h4 class="font-bold text-slate-800 border-b-2 border-orange-400 pb-1 mb-3 mt-4 flex items-center">{{ region }}</h4>
-                        <div class="grid grid-cols-1 gap-3">
-                            <div v-for="app in apps" :key="app.name" class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                                <div class="flex items-start mb-2">
-                                    <div class="mr-3 text-2xl text-slate-700 w-8 text-center"><i :class="app.icon"></i></div>
-                                    <div><p class="font-bold text-slate-800">{{ app.name }}</p><p class="text-xs text-slate-500">{{ app.desc }}</p></div>
+                        <h4 class="font-bold text-slate-800 border-b-2 border-orange-400 pb-1 mb-3 mt-4 flex items-center">
+                            {{ region }}
+                        </h4>
+                        <div class="space-y-3">
+                            <div v-for="app in apps" :key="app.name" class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex items-center">
+                                        <div class="mr-3 text-xl text-slate-700 w-8 text-center"><i :class="app.icon"></i></div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">{{ app.name }}</p>
+                                            <p class="text-xs text-slate-500">{{ app.desc }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex gap-2">
-                                    <a :href="app.ios" target="_blank" class="flex-1 bg-black text-white text-[10px] py-2 px-1 rounded-lg text-center flex items-center justify-center transition hover:bg-gray-800"><i class="fa-brands fa-apple mr-1 text-sm"></i>iOS</a>
-                                    <a :href="app.android" target="_blank" class="flex-1 bg-green-600 text-white text-[10px] py-2 px-1 rounded-lg text-center flex items-center justify-center transition hover:bg-green-700"><i class="fa-brands fa-android mr-1 text-sm"></i>Android</a>
+                                    <a :href="app.ios" target="_blank" class="flex-1 bg-black text-white text-[10px] py-2 px-1 rounded-lg text-center flex items-center justify-center transition hover:bg-gray-800">
+                                        <i class="fa-brands fa-apple mr-1 text-sm"></i> App Store
+                                    </a>
+                                    <a :href="app.android" target="_blank" class="flex-1 bg-green-600 text-white text-[10px] py-2 px-1 rounded-lg text-center flex items-center justify-center transition hover:bg-green-700">
+                                        <i class="fa-brands fa-android mr-1 text-sm"></i> Android
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </section>
 
             <section v-if="currentTab === 'finance'">
+                
+                
                 <div @click="openStatsModal" class="bg-slate-900 text-white p-4 rounded-2xl mb-4 shadow-lg cursor-pointer transition duration-150 hover:bg-slate-800">
-                    <p class="text-xs opacity-70 flex justify-between items-center">總支出 (TWD)<i class="fa-solid fa-chart-pie text-base"></i></p>
+                    <p class="text-xs opacity-70 flex justify-between items-center">
+                        總支出 (TWD)
+                        <i class="fa-solid fa-chart-pie text-base"></i>
+                    </p>
                     <p class="text-2xl font-bold">TWD ${{ totalExpenseTWD.toFixed(0) }}</p>
                 </div>
+
                 <div class="space-y-2 mb-6 p-4 border border-dashed rounded-xl bg-orange-50">
                     <h4 class="font-bold text-slate-800 mb-2">新增支出項目</h4>
-                    <div class="w-full mb-2">
+                    
+                    <div class="w-full">
                         <div v-if="newExpense.category === '交通' && newExpense.item !== '其他交通'">
-                            <select v-model="newExpense.item" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500">
+                            <select v-model="newExpense.item" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
                                 <option value="">請選擇交通方式 (非必填)</option>
-                                <option value="巴士">巴士</option><option value="地鐵">地鐵</option><option value="的士">的士</option>
-                                <option value="跨境交通">跨境交通</option><option value="其他交通">其他</option>
+                                <option value="巴士">巴士</option>
+                                <option value="地鐵">地鐵</option>
+                                <option value="的士">的士</option>
+                                <option value="跨境交通">跨境交通</option>
+                                <option value="其他交通">其他</option>
                             </select>
                         </div>
-                        <input v-else v-model="newExpense.item" placeholder="簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm">
+                        <div v-else-if="newExpense.category === '交通' && newExpense.item === '其他交通'">
+                               <input v-model="newExpense.item" placeholder="請輸入交通簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div v-else>
+                            <input v-model="newExpense.item" placeholder="簡述 (非必填)" class="w-full p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
                     </div>
+                    
                     <div class="flex gap-2">
-                        <select v-model="newExpense.category" class="w-1/3 p-3 border rounded-xl text-sm bg-white">
-                            <option value="吃喝">吃喝</option><option value="交通">交通</option>
-                            <option value="購物">購物</option><option value="門票">門票</option><option value="其他">其他</option>
-                        </select>
-                        <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="w-1/3 p-3 border rounded-xl text-sm text-right">
-                        <select v-model="newExpense.currency" class="w-1/4 p-3 border rounded-xl text-sm bg-white">
-                            <option value="HKD">HKD</option><option value="RMB">RMB</option><option value="TWD">TWD</option>
-                        </select>
+                            <select v-model="newExpense.category" class="w-1/3 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                                <option value="吃喝">吃喝</option>
+                                <option value="交通">交通</option>
+                                <option value="購物">購物</option>
+                                <option value="門票">門票</option>
+                                <option value="其他">其他</option>
+                            </select>
+                            <input v-model.number="newExpense.amount" type="number" placeholder="金額" class="w-1/3 p-3 border rounded-xl text-sm focus:ring-orange-500 focus:border-orange-500 text-right">
+                            <select v-model="newExpense.currency" class="w-1/4 p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                                <option value="HKD">HKD</option>
+                                <option value="RMB">RMB</option>
+                                <option value="TWD">TWD</option>
+                            </select>
                     </div>
-                    <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white mt-2">
-                         <option value="現金">現金</option><option value="信用卡">信用卡</option><option value="八達通">八達通</option><option value="電子支付">電子支付</option><option value="其他">其他</option>
+
+                    <select v-model="newExpense.method" class="w-full p-3 border rounded-xl text-sm bg-white focus:ring-orange-500 focus:border-orange-500">
+                        <option value="現金">現金</option>
+                        <option value="信用卡">信用卡</option>
+                        <option value="八達通">八達通</option>
+                        <option value="電子支付">電子支付</option>
+                        <option value="其他">其他</option>
                     </select>
-                    <button @click="addExpense" :disabled="!newExpense.amount" class="w-full bg-orange-500 text-white p-3 rounded-xl font-bold shadow-lg mt-2 transition active:scale-95">新增支出</button>
+                    <button @click="addExpense" :disabled="!newExpense.amount" class="w-full bg-orange-500 disabled:opacity-50 text-white p-3 rounded-xl font-bold shadow-lg active:scale-95 transition">新增支出</button>
                 </div>
-                <div v-for="(exp, index) in expenses" :key="exp.id" class="p-3 border-b border-slate-200">
-                    <div class="flex justify-between items-start text-sm">
-                        <div class="flex-1"><span class="font-bold text-slate-800">{{ exp.item }}</span><small class="text-slate-400 block">{{ getCategoryLabel(exp.category) }} ({{ exp.method }})</small></div>
+
+                <div v-for="(exp, index) in expenses" :key="exp.id" class="p-3 border-b border-slate-200 hover:bg-slate-50 transition duration-100">
+                    <div v-if="!exp.isEditing" class="flex justify-between items-start text-sm">
+                        <div class="flex-1">
+                            <span class="font-bold text-slate-800">{{ exp.item }}</span>
+                            <small class="text-slate-400 block">{{ getCategoryLabel(exp.category) }} ({{ exp.method }})</small>
+                        </div>
                         <div class="text-right">
                             <span class="font-medium text-red-500 text-base block">- {{ exp.currency }} {{ exp.amount }}</span>
-                            <span v-if="exp.currency !== 'TWD'" class="text-xs text-slate-500">(約 TWD {{ convertToTWD(exp.amount, exp.currency).toFixed(0) }})</span>
+                            <span v-if="exp.currency !== 'TWD'" class="text-xs text-slate-500">
+                                (約 TWD {{ convertToTWD(exp.amount, exp.currency).toFixed(0) }})
+                            </span>
                             <div class="flex justify-end gap-3 pt-1 mt-1">
-                                <button @click="deleteExpense(exp.id)" class="text-xs text-red-500 font-bold">刪除</button>
+                                <button @click="toggleEdit(exp)" class="text-xs text-blue-500 hover:text-blue-700 font-medium"><i class="fa-solid fa-edit mr-1"></i>編輯</button>
+                                <button @click="deleteExpense(exp.id)" class="text-xs text-red-500 hover:text-red-700 font-medium"><i class="fa-solid fa-trash-alt mr-1"></i>刪除</button>
                             </div>
                         </div>
+                    </div>
+
+                    <div v-else class="p-2 bg-white rounded-lg border border-blue-300">
+                            <h4 class="font-bold text-sm mb-2 text-blue-600">編輯支出</h4>
+                            
+                            <div v-if="exp.category === '交通' && exp.item === '其他交通'">
+                                 <input v-model="exp.item" placeholder="請輸入交通簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div v-else-if="exp.category === '交通'">
+                                 <select v-model="exp.item" class="w-full p-2 border rounded-lg text-sm mb-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                                     <option value="巴士">巴士</option>
+                                     <option value="地鐵">地鐵</option>
+                                     <option value="的士">的士</option>
+                                     <option value="跨境交通">跨境交通</option>
+                                     <option value="其他交通">其他</option>
+                                 </select>
+                            </div>
+                            <div v-else>
+                                 <input v-model="exp.item" placeholder="簡述" class="w-full p-2 border rounded-lg text-sm mb-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <div class="flex gap-2 mb-2">
+                                 <select v-model="exp.category" class="w-1/3 p-2 border rounded-lg text-sm bg-white">
+                                     <option value="吃喝">吃喝</option>
+                                     <option value="交通">交通</option>
+                                     <option value="購物">購物</option>
+                                     <option value="門票">門票</option>
+                                     <option value="其他">其他</option>
+                                 </select>
+                                 <input v-model.number="exp.amount" type="number" placeholder="金額" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 text-right">
+                                  <select v-model="exp.currency" class="w-1/4 p-2 border rounded-lg text-sm bg-white">
+                                      <option value="HKD">HKD</option>
+                                      <option value="RMB">RMB</option>
+                                      <option value="TWD">TWD</option>
+                                  </select>
+                            </div>
+                            <select v-model="exp.method" class="w-full p-2 border rounded-lg text-sm mb-3 bg-white">
+                                 <option value="現金">現金</option>
+                                 <option value="信用卡">信用卡</option>
+                                 <option value="八達通">八達通</option>
+                                 <option value="電子支付">電子支付</option>
+                                 <option value="其他">其他</option>
+                            </select>
+
+                            <button @click="toggleEdit(exp)" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold active:scale-95 transition">
+                                     儲存修改 <i class="fa-solid fa-save ml-1"></i>
+                            </button>
                     </div>
                 </div>
             </section>
 
             <section v-if="currentTab === 'wishlist'" class="space-y-4">
                 <div class="mb-4">
-                    <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white">
-                        <option value="全部">所有人</option><option v-for="member in members" :key="member" :value="member">{{ member }}</option>
+                    <select v-model="selectedMember" class="w-full p-3 border border-orange-300 rounded-xl text-sm font-bold bg-white shadow-md focus:ring-2 focus:ring-orange-500">
+                        <option value="全部">所有人 (顯示所有願望)</option>
+                        <option v-for="member in members" :key="member" :value="member">{{ member }}</option>
                     </select>
                 </div>
+
                 <div class="flex gap-2 mb-6">
                     <select v-model="newWishItem.member" class="p-3 border rounded-xl text-sm bg-white font-medium">
                         <option v-for="member in members" :key="member + '_add'" :value="member">{{ member }}</option>
                     </select>
-                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-lg text-sm focus:ring-orange-500">
+                    <input v-model="newWishItem.item" @keyup.enter="addWishItem" placeholder="想買什麼..." class="flex-1 p-3 border rounded-lg text-sm focus:ring-orange-500 focus:border-orange-500">
                     <button @click="addWishItem" class="bg-slate-900 text-white px-4 rounded-xl active:scale-95 transition"><i class="fa-solid fa-plus"></i></button>
                 </div>
-                <div v-for="(item, index) in filteredWishlist" :key="item.id" class="flex items-center p-3 bg-slate-50 rounded-xl justify-between mb-2">
-                    <div class="flex items-center">
-                        <input type="checkbox" v-model="item.done" @change="syncToCloud" class="mr-3 w-5 h-5 accent-orange-500">
-                        <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.member }}: {{ item.item }}</span>
+
+                <div v-if="filteredWishlist.length > 0" class="space-y-2">
+                    <div v-for="(item, index) in filteredWishlist" :key="item.id" class="flex items-center p-3 bg-slate-50 rounded-xl justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" v-model="item.done" @change="syncToCloud" class="mr-3 w-5 h-5 accent-orange-500">
+                            <span :class="{'line-through text-slate-400': item.done}" class="text-sm font-medium">{{ item.item }}</span>
+                        </div>
+                        <span v-if="selectedMember === '全部'" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">{{ item.member }}</span>
+                        
+                        <button @click="deleteWishItem(item.id)" class="ml-3 text-red-500 hover:text-red-700">
+                            <i class="fa-solid fa-times text-xs"></i>
+                        </button>
                     </div>
-                    <button @click="deleteWishItem(item.id)" class="text-red-500"><i class="fa-solid fa-times text-xs"></i></button>
+                </div>
+                <div v-else class="text-center text-slate-500 p-8 border border-dashed rounded-xl">
+                    <i class="fa-solid fa-face-frown text-2xl mb-2"></i>
+                    <p>{{ selectedMember }} 的願望清單是空的！</p>
                 </div>
             </section>
+
         </main>
         
+        <div v-if="isStatsModalOpen" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">支出分析 (TWD)</h3>
+                    <button @click="isStatsModalOpen = false" class="text-gray-500 hover:text-gray-800">
+                        <i class="fa-solid fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="w-full h-64 flex justify-center">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+
+                    <h4 class="font-bold text-sm text-orange-600 mt-4">總支出 TWD ${{ totalExpenseTWD.toFixed(0) }}</h4>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div v-for="(amount, category) in categoryTotals" :key="category" class="flex justify-between border-b pb-1">
+                            <span>{{ category }}</span>
+                            <span class="font-medium text-slate-700">TWD {{ amount.toFixed(0) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div v-if="isDetailModalOpen && selectedDayDetails" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 p-4">
             <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 class="text-xl font-bold text-slate-800">
                         {{ isEditMode ? '編輯行程' : selectedDayDetails.date + ' 詳情' }}
                     </h3>
-                    <button @click="closeModal" class="text-gray-500 hover:text-gray-800"><i class="fa-solid fa-times text-lg"></i></button>
+                    <button @click="closeModal" class="text-gray-500 hover:text-gray-800">
+                        <i class="fa-solid fa-times text-lg"></i>
+                    </button>
                 </div>
 
                 <div v-if="!isEditMode" class="space-y-4">
                     <p class="text-sm text-slate-600 mb-4">{{ selectedDayDetails.summary }}</p>
+                    
+                    <h4 class="font-bold text-orange-600 text-lg border-b pb-1 mb-3">當日行程點</h4>
+                    
                     <div v-for="(item, index) in selectedDayDetails.details" :key="index" class="p-3 border-l-4 border-orange-500 bg-slate-50 transition duration-150">
                         <p class="font-bold text-slate-800 mb-1 flex items-start text-sm">
                             <i class="fa-solid fa-location-dot mr-2 mt-1 text-orange-500 flex-shrink-0"></i> 
@@ -249,7 +487,15 @@
                         </p>
                         <p v-if="item.note" class="text-xs text-slate-500 ml-5">{{ item.note }}</p>
                     </div>
-                    <button @click="startEdit" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold mt-4"><i class="fa-solid fa-edit mr-1"></i> 編輯此日行程</button>
+
+                    <div class="flex gap-2 mt-4">
+                        <button @click="startEdit" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold hover:bg-blue-700 transition">
+                             <i class="fa-solid fa-edit mr-1"></i> 編輯行程
+                        </button>
+                        <button @click="closeModal" class="w-full bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300 transition">
+                             關閉
+                        </button>
+                    </div>
                 </div>
 
                 <div v-else class="space-y-4">
@@ -275,18 +521,7 @@
                         <button @click="isEditMode = false" class="flex-1 bg-slate-200 text-slate-800 p-2 rounded-xl font-bold hover:bg-slate-300">取消</button>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div v-if="isStatsModalOpen" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
-            <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm">
-                <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-xl font-bold text-slate-800">支出分析 (TWD)</h3>
-                    <button @click="isStatsModalOpen = false" class="text-gray-500 hover:text-gray-800">
-                        <i class="fa-solid fa-times text-lg"></i>
-                    </button>
-                </div>
-                <div class="w-full h-64 flex justify-center"><canvas id="expenseChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -294,7 +529,7 @@
 <script>
     const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-    // 🔥 Firebase 配置
+    // 🔥 1. Firebase 設定 (保持不變)
     const firebaseConfig = {
         apiKey: "AIzaSyDUJOYe8nisgggOU9iSbzoWHgid7Rf9rY0",
         authDomain: "webapp-69d9d.firebaseapp.com",
@@ -314,7 +549,7 @@
         return new Date(year, month - 1, day);
     }
     
-    // 原始數據
+    // 2. 原始數據 (保持不變)
     const FIXED_SCHEDULE = [
         { id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '聖誕節：抵港、海港城燈飾', weather: '晴時多雲', temp: '18°C / 13°C', summary: '聖誕抵港會合，晚上賞燈飾。', accommodation_note: '晚上住：香港的家 (1)', details: [{ time: '15:00', name: '兩人各自抵港' }, { time: '18:00', name: '海港城燈飾' }, { time: '20:00', name: '聖誕晚餐' }] },
         { id: 2, date: '12/26', city: '香港', city_code: 'HK', desc: '香港行程：Partyroom 交換禮物', weather: '晴朗', temp: '20°C / 15°C', summary: '今日在香港活動，晚上的重頭戲是 Partyroom 交換禮物。', accommodation_note: '晚上住：香港的家 (1)', details: [{ name: '白天：香港自由活動' }, { name: '晚上：Partyroom 交換禮物' }] },
@@ -357,10 +592,19 @@
             const editBuffer = ref({});
             const detailsString = ref("");
 
-            // 🔥 修正：補上之前漏掉的變數宣告
             const currentTime = ref("");
             const currentFullDate = ref("");
             const currentDateTime = ref(new Date());
+
+            // 🔥 新增：即時天氣變數
+            const realTimeWeather = ref(null);
+
+            // 🔥 新增：城市座標 (用於查天氣)
+            const CITY_COORDS = {
+                'HK': { lat: 22.3193, lon: 114.1694 }, // 香港
+                'SZ': { lat: 22.5431, lon: 114.0579 }, // 深圳
+                'GZ': { lat: 23.1291, lon: 113.2644 }  // 廣州
+            };
 
             const updateTime = () => {
                 const now = new Date();
@@ -369,7 +613,7 @@
                 currentFullDate.value = now.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' });
             };
             
-            updateTime(); // 立即執行一次
+            updateTime();
             setInterval(updateTime, 1000);
 
             const schedule = ref([]);
@@ -382,6 +626,45 @@
             const newWishItem = ref({ member: '橞宜', item: '' });
             const calculator = ref({ amount: null, currency: 'HKD' });
 
+            // 🔥 新增：WMO 天氣代碼轉換表
+            function getWeatherDesc(code) {
+                const codes = {
+                    0: '☀️ 晴朗', 1: '🌤 多雲', 2: '☁️ 陰天', 3: '☁️ 陰沉',
+                    45: '🌫 霧', 48: '🌫 霧淞', 
+                    51: '🌧 毛毛雨', 53: '🌧 中度毛雨', 55: '🌧 強毛雨',
+                    61: '☔ 小雨', 63: '☔ 中雨', 65: '☔ 大雨',
+                    80: '⛈ 陣雨', 81: '⛈ 中陣雨', 82: '⛈ 強陣雨'
+                };
+                return codes[code] || '未知';
+            }
+
+            // 🔥 新增：抓取即時天氣函式
+            async function fetchRealTimeWeather() {
+                // 1. 找出今天是哪一天
+                const todayDay = orderedSchedule.value.find(day => day.isToday);
+                if (!todayDay) return; // 如果今天不在行程範圍內，就不抓
+
+                // 2. 取得該城市的座標
+                const coords = CITY_COORDS[todayDay.city_code];
+                if (!coords) return;
+
+                // 3. 呼叫 Open-Meteo 免費 API
+                try {
+                    const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code&timezone=auto`);
+                    const data = await response.json();
+                    
+                    if (data.current) {
+                        realTimeWeather.value = {
+                            city: todayDay.city.split('/')[0],
+                            temp: `${Math.round(data.current.temperature_2m)}°C`,
+                            weather: getWeatherDesc(data.current.weather_code)
+                        };
+                    }
+                } catch (e) {
+                    console.error("天氣抓取失敗", e);
+                }
+            }
+
             onMounted(() => {
                 db.ref('tripData').on('value', (snapshot) => {
                     const data = snapshot.val();
@@ -393,6 +676,10 @@
                         syncToCloud(true);
                     }
                     dbStatus.value = "已連線";
+                    
+                    // 🔥 資料載入後，執行一次天氣抓取
+                    fetchRealTimeWeather();
+                    
                 }, () => dbStatus.value = "連線失敗");
             });
 
@@ -406,22 +693,43 @@
                 db.ref('tripData').set(data);
             };
 
+            function getComparableDate(dateString) {
+                const [month, day] = dateString.split('/').map(Number);
+                let year = month === 1 ? 2026 : 2025;
+                return new Date(year, month - 1, day);
+            }
+
             const orderedSchedule = computed(() => {
-                const now = currentDateTime.value;
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const today = new Date().setHours(0,0,0,0);
                 return [...schedule.value].sort((a, b) => getComparableDate(a.date) - getComparableDate(b.date)).map(day => {
-                    const tripDate = getComparableDate(day.date);
-                    return { ...day, isToday: tripDate.getTime() === today.getTime() };
+                    const d = getComparableDate(day.date).setHours(0,0,0,0);
+                    return { ...day, isToday: d === today };
                 });
             });
 
+            // 🔥 修改：優先顯示即時天氣，若無則顯示預設
             const todayHeaderWeather = computed(() => {
+                // 如果有抓到即時天氣，優先顯示
+                if (realTimeWeather.value) {
+                    return realTimeWeather.value;
+                }
+                
+                // 否則顯示原本行程表寫死的
                 const todayDay = orderedSchedule.value.find(day => day.isToday);
                 return todayDay ? { city: todayDay.city.split('/')[0], weather: todayDay.weather, temp: todayDay.temp } : null;
             });
+
             const uniqueAccommodationNotes = computed(() => [...new Set(schedule.value.map(d => d.accommodation_note).filter(n => n && n !== 'N/A'))]);
 
-            function getWeatherIcon(w) { return w?.includes('晴') ? 'fa-sun' : w?.includes('雨') ? 'fa-cloud-rain' : 'fa-cloud'; }
+            function getWeatherIcon(w) { 
+                // 擴充判斷，支援 API 回傳的文字
+                if (w?.includes('晴')) return 'fa-sun'; 
+                if (w?.includes('雨') || w?.includes('淋')) return 'fa-cloud-rain';
+                if (w?.includes('雷')) return 'fa-bolt';
+                if (w?.includes('霧')) return 'fa-smog';
+                return 'fa-cloud'; 
+            }
+            
             function getCategoryLabel(c) { return c; }
             function convertToTWD(a, c) { return (Number(a)||0) * (c === 'RMB' ? 4.4 : (c === 'HKD' ? 4.0 : 1)); }
 
