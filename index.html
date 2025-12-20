@@ -17,24 +17,26 @@
         .tab-active { color: #ff0000; border-bottom: 2px solid #ff0000; }
         .fa-solid { margin-right: 5px; } 
 
-        /* 【香港背景：紫色系】 */
+       /* 【香港背景：使用自己的圖片】 */
         .card-bg-HK { 
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), 
-            url('https://dummyimage.com/600x80/6a0dad/ffffff&text=Hong+Kong'); /* 紫色 */
+            background: linear-gradient(rgba(88, 28, 135, 0.4), rgba(0, 0, 0, 0.6)), /* 紫色濾鏡 */
+            url('./hk.jpg'); /* 👈 這裡改成你的檔案名稱 */
             background-size: cover; 
             background-position: center;
         }
         
-        /* 深圳背景：綠色系 */
+        /* 【深圳背景：使用自己的圖片】 */
         .card-bg-SZ { 
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/004d40/ffffff&text=Shenzhen'); /* 深綠色 */
+            background: linear-gradient(rgba(6, 78, 59, 0.4), rgba(0, 0, 0, 0.6)), /* 綠色濾鏡 */
+            url('./sz.jpg'); /* 👈 這裡改成你的檔案名稱 */
             background-size: cover; 
             background-position: center;
         }
 
-        /* 【廣州背景：藍色系】 */
+        /* 【廣州背景：使用自己的圖片】 */
         .card-bg-GZ { 
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://dummyimage.com/600x80/1a73e8/ffffff&text=Guangzhou'); /* 藍色 */
+            background: linear-gradient(rgba(30, 64, 175, 0.4), rgba(0, 0, 0, 0.6)), /* 藍色濾鏡 */
+            url('./gz.jpg'); /* 👈 這裡改成你的檔案名稱 */
             background-size: cover; 
             background-position: center;
         }
@@ -443,16 +445,19 @@
                 </div>
             </section>
 
-<div class="mt-12 mb-8 text-center border-t border-slate-200 pt-6">
+            <div class="mt-12 mb-8 text-center border-t border-slate-200 pt-6">
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-3">Service Provided By</p>
                 
                 <a href="https://www.instagram.com/j3cab.kaohsiung?igsh=ZnJ6OTY5bzFhNXBs" target="_blank" class="group inline-flex flex-col items-center transition duration-300 hover:scale-105">
                     <img src="./15473.png" alt="J3Cab Logo" class="h-16 w-auto object-contain rounded-xl shadow-md group-hover:shadow-xl group-hover:ring-2 group-hover:ring-orange-400 transition duration-300">
                     
                     <div class="mt-2 flex items-center gap-1 text-slate-800 font-bold tracking-wider group-hover:text-orange-600 transition">
-                        <span>J3Cab</span>
                         <i class="fa-brands fa-instagram text-lg"></i>
+                        <span>J3Cab</span>  
                     </div>
+                     <p class="text-[20px] text-slate-800 font-medium tracking-wide mt-0.5 group-hover:text-orange-500 transition">
+    點擊追蹤獲取更多包車及旅遊資訊
+</p>
                 </a>
             </div>
 
