@@ -1,5 +1,10 @@
 {
-
+  "name": "2025-2026 跨年旅行 | 雲端同步版",
+  "short_name": "跨年旅行",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
   "icons": [
     {
       "src": "./aicon.png",
