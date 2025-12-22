@@ -588,7 +588,7 @@
     // 2. 原始數據 (已更新 12/25 的灰色備註)
     const FIXED_SCHEDULE = [
         { 
-            id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '聖誕節：抵港、海港城燈飾', weather: '晴時多雲', temp: '18°C / 13°C', 
+            id: 1, date: '12/25', city: '香港', city_code: 'HK', desc: '聖誕節：抵港、海港城燈飾', weather: '多雲', temp: '21°C / 15°C', 
             summary: '聖誕節兩人各自抵港後會合，前往九龍區感受濃厚的聖誕氣氛和維港夜景。', 
             accommodation_note: '晚上住：香港粉嶺的家', 
                         details: [
@@ -773,12 +773,15 @@
             function getCategoryLabel(c) { return c; }
             function convertToTWD(a, c) { return (Number(a)||0) * (c === 'RMB' ? 4.4 : (c === 'HKD' ? 4.0 : 1)); }
 
-            function showDetails(day) {
+           function showDetails(day) {
                 selectedDayDetails.value = day;
                 editBuffer.value = JSON.parse(JSON.stringify(day));
                 
-                // 🔥 修改：解析出 note 欄位，組合成字串供編輯
-                detailsString.value = day.details.map(d => {
+                // 🔥 修改：加入 (day.details || []) 防呆機制
+                // 如果 details 是空的，就給它一個空陣列，防止程式崩潰
+                const safeDetails = day.details || [];
+                
+                detailsString.value = safeDetails.map(d => {
                     let str = d.time ? `${d.time}|${d.name}` : d.name;
                     if (d.note) str += `|${d.note}`;
                     return str;
