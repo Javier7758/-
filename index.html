@@ -27,7 +27,7 @@
        /* 【香港背景：使用自己的圖片】 */
         .card-bg-HK { 
             background: linear-gradient(rgba(88, 28, 135, 0.4), rgba(0, 0, 0, 0.6)), /* 紫色濾鏡 */
-            url('./hk.jpg'); /* 👈 這裡改成你的檔案名稱 */
+            url('./hk.jpg'); 
             background-size: cover; 
             background-position: center;
         }
@@ -35,7 +35,7 @@
         /* 【深圳背景：使用自己的圖片】 */
         .card-bg-SZ { 
             background: linear-gradient(rgba(6, 78, 59, 0.4), rgba(0, 0, 0, 0.6)), /* 綠色濾鏡 */
-            url('./sz.jpg'); /* 👈 這裡改成你的檔案名稱 */
+            url('./sz.jpg'); 
             background-size: cover; 
             background-position: center;
         }
@@ -43,7 +43,7 @@
         /* 【廣州背景：使用自己的圖片】 */
         .card-bg-GZ { 
             background: linear-gradient(rgba(30, 64, 175, 0.4), rgba(0, 0, 0, 0.6)), /* 藍色濾鏡 */
-            url('./gz.jpg'); /* 👈 這裡改成你的檔案名稱 */
+            url('./gz.jpg'); 
             background-size: cover; 
             background-position: center;
         }
@@ -81,9 +81,18 @@
             <div class="flex justify-between items-start mb-1">
                 <div>
                     <h1 class="text-xl font-bold italic">跨年旅行 <span class="text-orange-500">2025-2026</span></h1>
+                    
                     <p class="text-xs opacity-75 flex items-center">
                         <span v-if="dbStatus === '已連線'" class="text-green-400 mr-2"><i class="fa-solid fa-cloud"></i> 雲端已連線及同步</span>
                         <span v-else class="text-yellow-400 mr-2"><i class="fa-solid fa-spinner fa-spin"></i> {{ dbStatus }}</span>
+                    </p>
+
+                    <p class="text-[10px] text-green-300 flex items-center mt-1 font-mono tracking-wide">
+                        <span class="relative flex h-2 w-2 mr-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        {{ onlineCount }} 人在線觀看中
                     </p>
                 </div>
                 
@@ -91,6 +100,11 @@
                     <p class="font-bold text-orange-400">{{ currentFullDate }}</p>
                     <p class="font-light text-xl leading-none">{{ currentTime }}</p>
                     
+                    <div v-if="localWeather" class="flex justify-end items-center text-xs text-blue-200 mt-1 font-bold animate-pulse">
+                        <i class="fa-solid fa-location-dot mr-1 text-orange-400"></i>
+                        <span>{{ localWeather.city }} | {{ localWeather.weather }} {{ localWeather.temp }}</span>
+                    </div>
+
                     <div v-if="todayHeaderWeather" class="flex items-center justify-end opacity-90 mt-1 space-x-1">
                         <i :class="getWeatherIcon(todayHeaderWeather.weather)" class="fa-solid text-yellow-300 text-sm"></i>
                         <span class="text-xs font-medium">{{ todayHeaderWeather.weather }}</span>
@@ -633,6 +647,7 @@
             const isEditMode = ref(false);
             const selectedDayDetails = ref(null);
             const dbStatus = ref('讀取中...');
+            const onlineCount = ref(1); // 線上人數變數
             
             const showEarlyTrip = ref(false);
 
@@ -644,6 +659,7 @@
             const currentDateTime = ref(new Date());
 
             const realTimeWeather = ref(null);
+            const localWeather = ref(null); // 目前位置天氣變數
 
             const CITY_COORDS = {
                 'HK': { lat: 22.3193, lon: 114.1694 },
@@ -705,7 +721,73 @@
                 }
             }
 
+            // 🔥 新增：線上人數統計邏輯
+            function initPresence() {
+                const connectedRef = db.ref('.info/connected');
+                const onlineRef = db.ref('presence');
+                
+                connectedRef.on('value', (snap) => {
+                    if (snap.val() === true) {
+                        const con = onlineRef.push();
+                        con.onDisconnect().remove();
+                        con.set(true);
+                    }
+                });
+
+                onlineRef.on('value', (snap) => {
+                    onlineCount.value = snap.numChildren();
+                });
+            }
+
+            // 🔥 新增：抓取使用者位置天氣 (含手動/自動切換 & 真實城市名稱)
+            function initLocalWeather() {
+                // 監聽工程版的設定
+                db.ref('systemSettings').on('value', (snapshot) => {
+                    const settings = snapshot.val() || {};
+                    const mode = settings.weatherMode || 'auto'; 
+                    
+                    if (mode === 'manual' && settings.manualData) {
+                        localWeather.value = settings.manualData;
+                    } else {
+                        fetchUserLocationWeather();
+                    }
+                });
+            }
+
+            function fetchUserLocationWeather() {
+                if (!navigator.geolocation) return;
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        // 1. 抓取城市名稱 (使用 BigDataCloud 免費 API)
+                        const cityRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=zh`);
+                        const cityData = await cityRes.json();
+                        // 嘗試抓取 城市 > 區域 > 或直接顯示目前位置
+                        const cityName = cityData.city || cityData.locality || '目前位置';
+
+                        // 2. 抓取天氣 (Open-Meteo)
+                        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`);
+                        const weatherData = await weatherRes.json();
+
+                        if(weatherData.current) {
+                            localWeather.value = {
+                                city:'目前位置：' + cityName, 
+                                temp: `${Math.round(weatherData.current.temperature_2m)}°C`,
+                                weather: getWeatherDesc(weatherData.current.weather_code)
+                            };
+                        }
+                    } catch(e) { 
+                        console.error("定位天氣抓取失敗", e); 
+                    }
+                });
+            }
+
             onMounted(() => {
+                initPresence(); // 啟動人數統計
+                initLocalWeather(); // 啟動天氣監聽
+
                 db.ref('tripData').on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
@@ -864,7 +946,8 @@
                 showDetails, closeModal, startEdit, saveEdit, syncToCloud,
                 addExpense, deleteExpense, toggleEdit, addWishItem, deleteWishItem, openStatsModal,
                 getWeatherIcon, getCategoryLabel, convertToTWD, filteredWishlist,
-                showEarlyTrip, shouldShowDay
+                showEarlyTrip, shouldShowDay,
+                onlineCount, localWeather // 🔥 確保回傳這些變數
             };
         }
     }).mount('#app');
