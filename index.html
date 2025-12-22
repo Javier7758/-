@@ -773,7 +773,7 @@
 
                         if(weatherData.current) {
                             localWeather.value = {
-                                city:'目前位置：' + cityName, 
+                                city:'cityName, 
                                 temp: `${Math.round(weatherData.current.temperature_2m)}°C`,
                                 weather: getWeatherDesc(weatherData.current.weather_code)
                             };
@@ -953,4 +953,5 @@
     }).mount('#app');
 </script>
 </body>
+
 </html>
